@@ -1,0 +1,399 @@
+import java.awt.BasicStroke;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.GradientPaint;
+import java.awt.Graphics2D;
+import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import javax.imageio.ImageIO;
+import java.util.Random;
+import java.lang.Math;
+import java.util.Vector;
+import java.awt.Point;
+import java.util.Arrays;
+import java.util.List;
+
+public class GridMap
+{
+	private Vector<RoomBlock> rooms;
+	private Cell allTiles[][];
+	private int gridWidth;
+	private int gridHeight;
+	private Random rand;
+
+
+	public GridMap(int width, int height)
+	{
+		gridWidth = width;
+		gridHeight = height;
+		allTiles = new Cell[gridWidth][gridHeight];
+		rand = new Random();
+		rooms = new Vector<RoomBlock>(0, 1);
+
+		// Create new Cells in allTiles
+		for(int i = 0; i < gridWidth; i++)
+		{
+			for(int j = 0; j < gridHeight; j++)
+			{
+				// Create a new cell at the new position
+				if(i % 2 == 1 || j % 2 == 1)
+				{
+					allTiles[i][j] = new Cell(i, j, true);
+				}
+				else
+				{
+					allTiles[i][j] = new Cell(i, j, false);	
+				}
+				
+			}
+		}
+	}
+
+	
+	public void Draw()
+	{
+		try
+		{
+	      int width = 600, height = 600;
+
+	      // TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
+	      // into integer pixels
+	      BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+
+	      Graphics2D ig2 = bi.createGraphics();
+
+	      ig2.setColor(Color.BLACK);
+	      ig2.fillRect(0, 0, width, height);
+	      ig2.setColor(Color.WHITE);
+	      
+	      
+          
+	      designateRooms(ig2, rooms, 40, width, height);
+	      //designateCorridors();
+	      drawCells(ig2, width, height, gridWidth, gridHeight);
+
+	      drawGrid(ig2, width / gridWidth, height / gridHeight);
+
+	      ImageIO.write(bi, "PNG", new File("C:\\Users\\JamesDesktop\\Desktop\\Thesis\\test.PNG"));
+	      ImageIO.write(bi, "JPEG", new File("C:\\Users\\JamesDesktop\\Desktop\\Thesis\\test.JPG"));
+	      
+		      
+    	} 
+	    catch (IOException ie) 
+	    {
+	      ie.printStackTrace( );
+	    }
+	}
+	private void drawGrid(Graphics2D pencil, int width, int height)
+	{
+		pencil.setColor(Color.GRAY);
+	    
+	    for(int i = 0; i < gridWidth; i++)
+	    {
+	    	pencil.drawLine(i * width, 0, i * width, height * gridHeight);
+	    }
+	    for(int i = 0; i < gridHeight; i++)
+		{
+			pencil.drawLine(0, i * height, height * gridWidth, i * height);	
+		}
+	}
+
+	private void designateRooms(Graphics2D pencil, Vector<RoomBlock> rooms, int attempts, int imgW, int imgH)
+	{
+		// Attempt to draw N rooms
+		// Rooms can not overlap
+		// When a room is drawn, the appropriate cells in allTiles are notified and switch types
+		// A RoomBlock is also created
+		pencil.setColor(Color.WHITE);
+		int roomSizeWidth = 3;
+		int roomSizeHeight = 4;
+
+		int startWidth; 
+		int startHeight;
+		
+		try
+		{
+			// Decide rooms based on tiles.
+			for(int i = 0; i < attempts; i++)
+			{
+
+				// pick start origin
+				startWidth = Math.floorMod(rand.nextInt(), gridWidth);
+				startHeight = Math.floorMod(rand.nextInt(), gridHeight);
+
+				// Check if any overlap with existing rooms
+				// For each room in rooms, check if any overlap exists
+				if(startWidth >= 0 && (startWidth + roomSizeWidth) <= allTiles.length
+					&& startHeight >= 0 && (startHeight + roomSizeHeight) <= allTiles[0].length)
+				{
+					
+					boolean overlap = false;
+
+					for(RoomBlock room : rooms)
+					{
+						// If the current room overlaps with any other rooms, try again
+						if(room.doOverlap(startWidth, startHeight, roomSizeWidth, roomSizeHeight))
+						{
+							overlap = true;
+							break;
+						}
+						
+					}
+
+					// If there is no overlap with other rooms, create the new room
+					if(!overlap)
+					{
+						for(int j = 0; j < roomSizeWidth; j++)
+						{
+							for(int k = 0; k < roomSizeHeight; k++)
+							{
+								// Change cell type
+								allTiles[startWidth + j][startHeight + k].changeCellType(Globals.ROOM);
+
+							}
+						}
+
+						rooms.add(new RoomBlock(startWidth,  startWidth + roomSizeWidth,startHeight, startHeight + roomSizeHeight));
+					}
+
+
+				}	
+				else
+				{
+					System.out.println("Coords didnt fall in grid");
+				}		
+			}		
+		}
+		catch(Exception ex)
+		{
+			ex.printStackTrace();
+		}
+		
+
+
+		
+		
+	}
+	private void designateCorridors()
+	{
+		// Choose starting position
+		// Move randomly N, S, E , or W
+		// if N or S, set  E & W as IMPASSIBLE, then move
+		// if E or W, set  N & W as IMPASSIBLE, then move
+		// if all areas except where it came from are impassible, then recurse back
+		
+		
+		for(int i = 0; i < allTiles.length; i++)
+		{
+			for(int j = 0; j <allTiles[0].length; j++)
+			{
+				Cell currentPos = allTiles[i][j];
+				if(currentPos.getCellType() != Globals.BLOCKED)
+				{
+					continue;
+				}
+				//System.out.println("Designate");
+				expandMaze(currentPos);
+			}
+		}
+
+		// Choose a direction randomly, set an adjectent cell to Globals.WALL
+
+		
+	}
+	private void expandMaze(Cell pos)
+	{
+		
+		// recursive backtracking algorithm
+		Direction lastDir = null;
+		Cell current = pos;
+		allTiles[pos.getX()][pos.getY()].changeCellType(Globals.HALLWAY);
+		Vector<Cell> cellStack = new Vector<Cell>();
+
+		cellStack.add(pos);
+
+		while(!cellStack.isEmpty())
+		{
+			// Select and unvisited cell(defined by WALL)
+			Cell unvisited = getNextMove(current, lastDir);
+		}
+
+		
+
+	
+
+	}
+	private Cell getNextMove(Cell current, Direction lastDir)
+	{
+		Cell nextMove = null;
+		Direction nextDir = null;
+		List<Direction> allDir = Arrays.asList(Direction.values());
+		Vector<Direction> potentialDirections = new Vector<Direction>();
+
+		// Determine which directions are viable moves
+		for(Direction dir : allDir)
+		{
+			// If the direction points to a cell not out of bounds and a cell that is a wall
+			if(!outOfBounds(current.getX() + dir.dx, current.getY() + dir.dy)
+				&& allTiles[current.getX() + dir.dx][current.getY() + dir.dy].getCellType() == Globals.WALL
+					&& allTiles[current.getX() + (dir.dx * 2)][current.getY() + (dir.dy * 2)].getCellType() == Globals.HALLWAY)
+			{
+				potentialDirections.add(dir);
+			}
+		}
+
+		if(lastDir != null)
+		{
+
+		}
+		else
+		{
+			nextDir = 
+		}
+	}
+
+	private boolean noRoomCollision(int posX, int posY)
+	{
+		// Returns true if the position wouldn't collide with any rooms
+		boolean retVal = true;
+
+		for(RoomBlock room : rooms)
+		{
+			// For each room, check for collision
+			if(room.checkIfCollision(posX, posY))
+			{
+				retVal = false;
+				break;
+			}
+		}
+		return retVal;
+	}
+	private boolean outOfBounds(int posX, int posY)
+	{
+		boolean retVal = false;
+		// Returns true if the X or Y fall out of bounds
+		if(posX < 0 || posX >= gridWidth || posY < 0 || posY >= gridHeight)
+		{
+			retVal = true;
+		}
+
+		return retVal;
+	}
+		
+	private void drawCells(Graphics2D pencil, int imgW, int imgH, int gridW, int gridH)
+	{
+		// Draw Rooms
+		
+		// Multiply X & Y by img width/height and grid width/height in order to fit the pictures resolution
+		float red;
+		float green;
+		float blue;
+
+		for(int i = 0; i < rooms.size(); i++)
+		{
+			red = rand.nextFloat();
+			green = rand.nextFloat();
+			blue = rand.nextFloat();
+
+			pencil.fillRect(rooms.get(i).getLowX() * (imgW / gridWidth) + 1, rooms.get(i).getLowY() * (imgH / gridHeight) + 1, (rooms.get(i).getHighX() - rooms.get(i).getLowX()) * (imgW / gridWidth) - 1, (rooms.get(i).getHighY() - rooms.get(i).getLowY()) * (imgH / gridHeight) - 1);
+			pencil.setColor(new Color(red, green, blue));
+		}
+		
+		// Draw Hallways
+		for(int i = 0; i < gridW; i++)
+		{
+			for(int j = 0; j < gridH; j++)
+			{
+				if(allTiles[i][j].getCellType() == Globals.HALLWAY)
+				{
+					pencil.setColor(Color.WHITE);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
+				else if(allTiles[i][j].getCellType() != Globals.ROOM)
+				{
+					pencil.setColor(Color.BLACK);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
+			}
+		}
+
+
+	}
+
+
+
+	
+}
+
+
+
+
+/*// Go in any direction from current position
+			/*Direction lastDir;
+		Vector<Cell> corridor = new Vector<Cell>();
+
+		// Current position should be marked to be carved out in the grid
+		// Add current position to the current corridor
+		allTiles[pos.getX()][pos.getY()].changeCellType(Globals.HALLWAY);
+		corridor.add(pos);
+
+		// As long as there are still cells in the corridor, keep checking if we can branch
+		while(!corridor.isEmpty())
+		{
+			Cell lastCell = corridor.lastElement();
+			//System.out.println(lastCell);
+
+			// A list of all possible directions to move
+			// A vector of the moves that are viable
+			List<Direction> allDir = Arrays.asList(Direction.values());
+			Vector<Direction> potentialCells = new Vector<Direction>();
+
+			// For each direction, check if its viable
+			// If viable, add to the potential moves vector
+			for(Direction dir : allDir)
+			{
+
+				if(!outOfBounds(pos.getX() + dir.dx, pos.getY() + dir.dy)  && noRoomCollision(pos.getX() + dir.dx, pos.getY() + dir.dy) && allTiles[pos.getX() + dir.dx][pos.getY() + dir.dy].getCellType() == Globals.BLOCKED)
+				{
+					potentialCells.add(dir);
+				}
+			}
+
+
+			// If there is atleast 1 viable move to make, randomly choose a move
+			if(!potentialCells.isEmpty())
+			{
+				Direction chosenDir;
+				Random rand = new Random();
+				System.out.println(potentialCells.size());
+				chosenDir = potentialCells.get(Math.floorMod(rand.nextInt(), potentialCells.size()));
+				System.out.println(chosenDir);
+
+				allTiles[pos.getX() + chosenDir.dx][pos.getY() + chosenDir.dy].changeCellType(Globals.HALLWAY);
+				/*if(chosenDir.horizontalMove && !outOfBounds(pos.getX(), pos.getY() - 1) && !outOfBounds(pos.getX(), pos.getY() + 1))
+				{
+					allTiles[pos.getX()][pos.getY() - 1].changeCellType(Globals.IMPASSABLE);
+					allTiles[pos.getX()][pos.getY() + 1].changeCellType(Globals.IMPASSABLE);
+				}
+				else if(chosenDir.verticalMove && !outOfBounds(pos.getX() -1, pos.getY()) && !outOfBounds(pos.getX() + 1, pos.getY()))
+				{
+					allTiles[pos.getX() - 1][pos.getY()].changeCellType(Globals.IMPASSABLE);
+					allTiles[pos.getX() + 1][pos.getY()].changeCellType(Globals.IMPASSABLE);
+				}
+
+				lastDir = chosenDir;
+				corridor.add(allTiles[pos.getX() + chosenDir.dx][pos.getY() + chosenDir.dy]);
+				
+			}
+			else
+			{
+				// No adjacent cells can be made HALLWAY
+				corridor.remove(corridor.size() - 1);
+
+				lastDir = null;
+			}
+
+		}*/
