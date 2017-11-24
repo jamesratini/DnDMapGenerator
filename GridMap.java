@@ -72,13 +72,13 @@ public class GridMap
 	      
           
 	      designateRooms(ig2, rooms, 40, width, height);
-	      //designateCorridors();
+	      designateCorridors();
 	      drawCells(ig2, width, height, gridWidth, gridHeight);
 
 	      drawGrid(ig2, width / gridWidth, height / gridHeight);
 
-	      ImageIO.write(bi, "PNG", new File("C:\\Users\\JamesDesktop\\Desktop\\Thesis\\test.PNG"));
-	      ImageIO.write(bi, "JPEG", new File("C:\\Users\\JamesDesktop\\Desktop\\Thesis\\test.JPG"));
+	      ImageIO.write(bi, "PNG", new File(".\\test.PNG"));
+	      ImageIO.write(bi, "JPEG", new File(".\\test.JPG"));
 	      
 		      
     	} 
@@ -179,52 +179,60 @@ public class GridMap
 	}
 	private void designateCorridors()
 	{
-		// Choose starting position
-		// Move randomly N, S, E , or W
-		// if N or S, set  E & W as IMPASSIBLE, then move
-		// if E or W, set  N & W as IMPASSIBLE, then move
-		// if all areas except where it came from are impassible, then recurse back
-		
-		
-		for(int i = 0; i < allTiles.length; i++)
-		{
-			for(int j = 0; j <allTiles[0].length; j++)
-			{
-				Cell currentPos = allTiles[i][j];
-				if(currentPos.getCellType() != Globals.BLOCKED)
-				{
-					continue;
-				}
-				//System.out.println("Designate");
-				expandMaze(currentPos);
-			}
-		}
+	
+		expandMaze();
+			
 
 		// Choose a direction randomly, set an adjectent cell to Globals.WALL
 
 		
 	}
-	private void expandMaze(Cell pos)
+	private void expandMaze()
 	{
-		
 		// recursive backtracking algorithm
+
+		Vector<Cell> unvisitedCells = getUnvisitedCells();
 		Direction lastDir = null;
-		Cell current = pos;
-		allTiles[pos.getX()][pos.getY()].changeCellType(Globals.HALLWAY);
+		Cell current = unvisitedCells.get(Math.floorMod(rand.nextInt(), unvisitedCells.size()));
+		//Cell current = unvisitedCells.remove(0);
+		Cell nextCell = null;
+		Cell finish = null;
+		//allTiles[current.getX()][current.getY()].changeCellType(Globals.HALLWAY);
 		Vector<Cell> cellStack = new Vector<Cell>();
 
-		cellStack.add(pos);
+		cellStack.add(current);
 
-		while(!cellStack.isEmpty())
+		while(!unvisitedCells.isEmpty())
 		{
-			// Select and unvisited cell(defined by WALL)
-			Cell unvisited = getNextMove(current, lastDir);
+			allTiles[current.getX()][current.getY()].changeCellType(Globals.HALLWAY);
+			if(unvisitedCells.size() == 1)
+			{
+				finish = unvisitedCells.get(0);
+			}
+			
+			// Select an unvisited cell(defined by WALL)
+			nextCell = getNextMove(current, lastDir);
+
+			if(nextCell != null)
+			{
+				// Remove wall between current cell and next cell
+				
+				allTiles[nextCell.getX()][nextCell.getY()].changeCellType(Globals.HALLWAY);
+				current = allTiles[current.getX() + ((nextCell.getX() - current.getX()) * 2)][current.getY() + ((nextCell.getY() - current.getY()) * 2)];
+				cellStack.add(current);
+				unvisitedCells.remove(current);
+				
+			}
+			else if(!cellStack.isEmpty())
+			{
+				current = cellStack.remove(cellStack.size() - 1);
+			}
+			else
+			{
+				current = unvisitedCells.remove(Math.floorMod(rand.nextInt(), unvisitedCells.size()));
+				allTiles[current.getX()][current.getY()].changeCellType(Globals.HALLWAY);
+			}
 		}
-
-		
-
-	
-
 	}
 	private Cell getNextMove(Cell current, Direction lastDir)
 	{
@@ -232,27 +240,55 @@ public class GridMap
 		Direction nextDir = null;
 		List<Direction> allDir = Arrays.asList(Direction.values());
 		Vector<Direction> potentialDirections = new Vector<Direction>();
-
+		
 		// Determine which directions are viable moves
 		for(Direction dir : allDir)
 		{
+
 			// If the direction points to a cell not out of bounds and a cell that is a wall
 			if(!outOfBounds(current.getX() + dir.dx, current.getY() + dir.dy)
+				&& !outOfBounds(current.getX() + (dir.dx * 2), current.getY() + (dir.dy * 2))
 				&& allTiles[current.getX() + dir.dx][current.getY() + dir.dy].getCellType() == Globals.WALL
-					&& allTiles[current.getX() + (dir.dx * 2)][current.getY() + (dir.dy * 2)].getCellType() == Globals.HALLWAY)
+				&& allTiles[current.getX() + (dir.dx * 2)][current.getY() + (dir.dy * 2)].getCellType() == Globals.BLOCKED
+				&& noRoomCollision(current.getX()+ (dir.dx * 2), current.getY() + (dir.dy * 2)))
 			{
+				
 				potentialDirections.add(dir);
 			}
 		}
 
-		if(lastDir != null)
+		if(lastDir != null )
 		{
+			// Some variable (genetic algorithm gene) that causes a favor for previous direction
+		}
+		else if(potentialDirections.size() != 0)
+		{
+			// Else, a random direction among the potential ones
+			nextDir = potentialDirections.get(Math.floorMod(rand.nextInt(), potentialDirections.size()));
+			System.out.println(nextDir);
 
+			// Set next cell to current cell + chosen direction
+			nextMove = allTiles[current.getX() + (nextDir.dx)][current.getY() + (nextDir.dy)];
 		}
-		else
+
+		return nextMove;
+	}
+	private Vector<Cell> getUnvisitedCells()
+	{
+		Vector<Cell> temp = new Vector<Cell>();
+		// step through all cells and return a vector of cells that are HALLWAY and arent at 0,0(starting point)
+		for(int i = 0; i < allTiles.length; i++)
 		{
-			nextDir = 
+			for(int j = 0; j < allTiles[1].length; j++)
+			{
+				if(allTiles[i][j].getCellType() == Globals.BLOCKED)
+				{
+					temp.add(allTiles[i][j]);
+				}
+			}
 		}
+
+		return temp;
 	}
 
 	private boolean noRoomCollision(int posX, int posY)
@@ -307,12 +343,12 @@ public class GridMap
 		{
 			for(int j = 0; j < gridH; j++)
 			{
-				if(allTiles[i][j].getCellType() == Globals.HALLWAY)
+				if(allTiles[i][j].getCellType() == Globals.BLOCKED)
 				{
 					pencil.setColor(Color.WHITE);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
-				else if(allTiles[i][j].getCellType() != Globals.ROOM)
+				else if(allTiles[i][j].getCellType() == Globals.WALL || allTiles[i][j].getCellType() == Globals.BLOCKED)
 				{
 					pencil.setColor(Color.BLACK);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
@@ -328,72 +364,3 @@ public class GridMap
 	
 }
 
-
-
-
-/*// Go in any direction from current position
-			/*Direction lastDir;
-		Vector<Cell> corridor = new Vector<Cell>();
-
-		// Current position should be marked to be carved out in the grid
-		// Add current position to the current corridor
-		allTiles[pos.getX()][pos.getY()].changeCellType(Globals.HALLWAY);
-		corridor.add(pos);
-
-		// As long as there are still cells in the corridor, keep checking if we can branch
-		while(!corridor.isEmpty())
-		{
-			Cell lastCell = corridor.lastElement();
-			//System.out.println(lastCell);
-
-			// A list of all possible directions to move
-			// A vector of the moves that are viable
-			List<Direction> allDir = Arrays.asList(Direction.values());
-			Vector<Direction> potentialCells = new Vector<Direction>();
-
-			// For each direction, check if its viable
-			// If viable, add to the potential moves vector
-			for(Direction dir : allDir)
-			{
-
-				if(!outOfBounds(pos.getX() + dir.dx, pos.getY() + dir.dy)  && noRoomCollision(pos.getX() + dir.dx, pos.getY() + dir.dy) && allTiles[pos.getX() + dir.dx][pos.getY() + dir.dy].getCellType() == Globals.BLOCKED)
-				{
-					potentialCells.add(dir);
-				}
-			}
-
-
-			// If there is atleast 1 viable move to make, randomly choose a move
-			if(!potentialCells.isEmpty())
-			{
-				Direction chosenDir;
-				Random rand = new Random();
-				System.out.println(potentialCells.size());
-				chosenDir = potentialCells.get(Math.floorMod(rand.nextInt(), potentialCells.size()));
-				System.out.println(chosenDir);
-
-				allTiles[pos.getX() + chosenDir.dx][pos.getY() + chosenDir.dy].changeCellType(Globals.HALLWAY);
-				/*if(chosenDir.horizontalMove && !outOfBounds(pos.getX(), pos.getY() - 1) && !outOfBounds(pos.getX(), pos.getY() + 1))
-				{
-					allTiles[pos.getX()][pos.getY() - 1].changeCellType(Globals.IMPASSABLE);
-					allTiles[pos.getX()][pos.getY() + 1].changeCellType(Globals.IMPASSABLE);
-				}
-				else if(chosenDir.verticalMove && !outOfBounds(pos.getX() -1, pos.getY()) && !outOfBounds(pos.getX() + 1, pos.getY()))
-				{
-					allTiles[pos.getX() - 1][pos.getY()].changeCellType(Globals.IMPASSABLE);
-					allTiles[pos.getX() + 1][pos.getY()].changeCellType(Globals.IMPASSABLE);
-				}
-
-				lastDir = chosenDir;
-				corridor.add(allTiles[pos.getX() + chosenDir.dx][pos.getY() + chosenDir.dy]);
-				
-			}
-			else
-			{
-				// No adjacent cells can be made HALLWAY
-				corridor.remove(corridor.size() - 1);
-
-				lastDir = null;
-			}
-
-		}*/
