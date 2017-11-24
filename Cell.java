@@ -14,7 +14,7 @@ public class Cell
 		}
 		else
 		{
-			cellType = Globals.HALLWAY;	
+			cellType = Globals.BLOCKED;	
 		}
 		
 	}
