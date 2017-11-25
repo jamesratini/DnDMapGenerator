@@ -23,6 +23,9 @@ public class GridMap
 	private int gridWidth;
 	private int gridHeight;
 	private Random rand;
+	private int geneticAttempts;
+	private int geneticRoomMin;
+	private int geneticRoomMax;
 
 
 	public GridMap(int width, int height)
@@ -50,6 +53,10 @@ public class GridMap
 				
 			}
 		}
+
+		geneticAttempts = 400;
+		geneticRoomMax = 9;
+		geneticRoomMin = 5;
 	}
 
 	
@@ -67,12 +74,12 @@ public class GridMap
 
 	      ig2.setColor(Color.BLACK);
 	      ig2.fillRect(0, 0, width, height);
-	      ig2.setColor(Color.WHITE);
+	      
 	      
 	      
           
-	      designateRooms(ig2, rooms, 40, width, height);
-	      designateCorridors();
+	      designateRooms(ig2, rooms, width, height);
+	      //expandMaze();
 	      drawCells(ig2, width, height, gridWidth, gridHeight);
 
 	      drawGrid(ig2, width / gridWidth, height / gridHeight);
@@ -101,15 +108,15 @@ public class GridMap
 		}
 	}
 
-	private void designateRooms(Graphics2D pencil, Vector<RoomBlock> rooms, int attempts, int imgW, int imgH)
+	private void designateRooms(Graphics2D pencil, Vector<RoomBlock> rooms, int imgW, int imgH)
 	{
 		// Attempt to draw N rooms
 		// Rooms can not overlap
 		// When a room is drawn, the appropriate cells in allTiles are notified and switch types
 		// A RoomBlock is also created
 		pencil.setColor(Color.WHITE);
-		int roomSizeWidth = 3;
-		int roomSizeHeight = 4;
+		int roomSizeWidth;
+		int roomSizeHeight;
 
 		int startWidth; 
 		int startHeight;
@@ -117,8 +124,10 @@ public class GridMap
 		try
 		{
 			// Decide rooms based on tiles.
-			for(int i = 0; i < attempts; i++)
+			for(int i = 0; i < geneticAttempts; i++)
 			{
+				roomSizeWidth = rand.nextInt((geneticRoomMax - geneticRoomMin) + 1) + geneticRoomMin;
+				roomSizeHeight = rand.nextInt((geneticRoomMax - geneticRoomMin) + 1) + geneticRoomMin;
 
 				// pick start origin
 				startWidth = Math.floorMod(rand.nextInt(), gridWidth);
@@ -177,16 +186,7 @@ public class GridMap
 		
 		
 	}
-	private void designateCorridors()
-	{
 	
-		expandMaze();
-			
-
-		// Choose a direction randomly, set an adjectent cell to Globals.WALL
-
-		
-	}
 	private void expandMaze()
 	{
 		// recursive backtracking algorithm
@@ -205,10 +205,6 @@ public class GridMap
 		while(!unvisitedCells.isEmpty())
 		{
 			allTiles[current.getX()][current.getY()].changeCellType(Globals.HALLWAY);
-			if(unvisitedCells.size() == 1)
-			{
-				finish = unvisitedCells.get(0);
-			}
 			
 			// Select an unvisited cell(defined by WALL)
 			nextCell = getNextMove(current, lastDir);
@@ -265,7 +261,6 @@ public class GridMap
 		{
 			// Else, a random direction among the potential ones
 			nextDir = potentialDirections.get(Math.floorMod(rand.nextInt(), potentialDirections.size()));
-			System.out.println(nextDir);
 
 			// Set next cell to current cell + chosen direction
 			nextMove = allTiles[current.getX() + (nextDir.dx)][current.getY() + (nextDir.dy)];
@@ -333,9 +328,9 @@ public class GridMap
 			red = rand.nextFloat();
 			green = rand.nextFloat();
 			blue = rand.nextFloat();
-
-			pencil.fillRect(rooms.get(i).getLowX() * (imgW / gridWidth) + 1, rooms.get(i).getLowY() * (imgH / gridHeight) + 1, (rooms.get(i).getHighX() - rooms.get(i).getLowX()) * (imgW / gridWidth) - 1, (rooms.get(i).getHighY() - rooms.get(i).getLowY()) * (imgH / gridHeight) - 1);
 			pencil.setColor(new Color(red, green, blue));
+			pencil.fillRect(rooms.get(i).getLowX() * (imgW / gridWidth) + 1, rooms.get(i).getLowY() * (imgH / gridHeight) + 1, (rooms.get(i).getHighX() - rooms.get(i).getLowX()) * (imgW / gridWidth) - 1, (rooms.get(i).getHighY() - rooms.get(i).getLowY()) * (imgH / gridHeight) - 1);
+			
 		}
 		
 		// Draw Hallways
@@ -343,7 +338,7 @@ public class GridMap
 		{
 			for(int j = 0; j < gridH; j++)
 			{
-				if(allTiles[i][j].getCellType() == Globals.BLOCKED)
+				if(allTiles[i][j].getCellType() == Globals.HALLWAY)
 				{
 					pencil.setColor(Color.WHITE);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
@@ -363,4 +358,3 @@ public class GridMap
 
 	
 }
-

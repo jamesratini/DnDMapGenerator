@@ -8,6 +8,7 @@ public class RoomBlock
 	int xUpper; // Right bound
 	int yLower; // Upper bound
 	int yUpper; // Lower bound
+	Rectangle surroundingBoundary;
 
 	public RoomBlock(int xLow, int xHigh, int yLow, int yHigh)
 	{
@@ -15,6 +16,7 @@ public class RoomBlock
 		xUpper = xHigh;
 		yLower = yLow;
 		yUpper = yHigh;
+		surroundingBoundary = new Rectangle(xLower - 1, yLower - 1, xUpper + 1, yUpper + 1);
 	}
 
 	// Returns true of 2 rectangles overlap
@@ -24,10 +26,10 @@ public class RoomBlock
 		
 		boolean overlap = true;
 
-		Rectangle room = new Rectangle(xLower - 1, yLower - 1, roomWidth + 1, roomHeight + 1);
-		Rectangle checkRect = new Rectangle(checkX - 1, checkY - 1, roomWidth + 1, roomHeight + 1);
+		
+		Rectangle checkRect = new Rectangle(checkX, checkY, roomWidth, roomHeight);
 
-		return room.intersects(checkRect);
+		return surroundingBoundary.intersects(checkRect);
 	}
 	public boolean checkIfCollision(int posX, int posY)
 	{
