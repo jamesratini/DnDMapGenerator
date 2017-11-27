@@ -5,4 +5,5 @@ public class Globals
 	public static int BLOCKED = 3;
 	public static int IMPASSABLE = 4;
 	public static int WALL = 5;
+	public static int POSSIBLE_DOOR = 6;
 }

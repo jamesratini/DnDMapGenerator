@@ -16,7 +16,7 @@ public class RoomBlock
 		xUpper = xHigh;
 		yLower = yLow;
 		yUpper = yHigh;
-		surroundingBoundary = new Rectangle(xLower - 1, yLower - 1, xUpper + 1, yUpper + 1);
+		surroundingBoundary = new Rectangle(xLower == 0 ? xLower : xLower - 1, yLower == 0 ? yLower : yLower - 1, (xUpper - xLower) + 2, (yUpper - yLower) + 2);
 	}
 
 	// Returns true of 2 rectangles overlap
@@ -35,11 +35,20 @@ public class RoomBlock
 	{
 		
 		// Returns true if a cell collides with a room
+		boolean retVal = false;
+		if(surroundingBoundary.contains(posX, posY))
+		{
+			retVal = true;
+			System.out.printf("(%d, %d) inside (%f,%f) to (%f, %f)", posX, posY, surroundingBoundary.getX(), surroundingBoundary.getY(), surroundingBoundary.getX() + surroundingBoundary.getWidth(), surroundingBoundary.getY() + surroundingBoundary.getHeight());
+		}
 
-		Rectangle room = new Rectangle(xLower, yLower, xUpper - xLower, yUpper - yLower);
 
 
-		return room.contains(new Point(posX, posY));
+		return retVal;
+	}
+	public Rectangle getBoundary()
+	{
+		return surroundingBoundary;
 	}
 	public int getLowX()
 	{
