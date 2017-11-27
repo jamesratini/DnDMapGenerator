@@ -26,6 +26,8 @@ public class GridMap
 	private int geneticAttempts;
 	private int geneticRoomMin;
 	private int geneticRoomMax;
+	private int geneticDirectionFavor;
+	private Direction lastDir;
 
 
 	public GridMap(int width, int height)
@@ -54,9 +56,11 @@ public class GridMap
 			}
 		}
 
-		geneticAttempts = 500;
+		geneticAttempts = 0;
 		geneticRoomMax = 9;
 		geneticRoomMin = 5;
+		geneticDirectionFavor = 0;
+		lastDir = null;
 	}
 
 	
@@ -196,7 +200,7 @@ public class GridMap
 		// recursive backtracking algorithm
 
 		Vector<Cell> unvisitedCells = getUnvisitedCells();
-		Direction lastDir = null;
+		//Direction lastDir = null;
 		Cell current = unvisitedCells.get(Math.floorMod(rand.nextInt(), unvisitedCells.size()));
 		//Cell current = unvisitedCells.remove(0);
 		Cell nextCell = null;
@@ -212,7 +216,7 @@ public class GridMap
 			allTiles[current.getX()][current.getY()].changeCellType(Globals.HALLWAY);
 			
 			// Select an unvisited cell(defined by WALL)
-			nextCell = getNextMove(current, lastDir);
+			nextCell = getNextMove(current);
 
 			if(nextCell != null)
 			{
@@ -220,7 +224,6 @@ public class GridMap
 				
 				allTiles[nextCell.getX()][nextCell.getY()].changeCellType(Globals.HALLWAY);
 				current = allTiles[current.getX() + ((nextCell.getX() - current.getX()) * 2)][current.getY() + ((nextCell.getY() - current.getY()) * 2)];
-				System.out.printf("nextX: %d nextY: %d \n", current.getX(), current.getY());
 				cellStack.add(current);
 				unvisitedCells.remove(current);
 				
@@ -231,7 +234,7 @@ public class GridMap
 			}
 			else
 			{
-				System.out.println("nextMove null");
+				
 				current = unvisitedCells.remove(rand.nextInt(unvisitedCells.size()));
 				while(!noRoomCollision(current.getX(), current.getY()) && !unvisitedCells.isEmpty())
 				{
@@ -243,7 +246,7 @@ public class GridMap
 			}
 		}
 	}
-	private Cell getNextMove(Cell current, Direction lastDir)
+	private Cell getNextMove(Cell current)
 	{
 		Cell nextMove = null;
 		Direction nextDir = null;
@@ -253,9 +256,7 @@ public class GridMap
 		// Determine which directions are viable moves
 		for(Direction dir : allDir)
 		{
-			//System.out.printf("x: %d y: %d \n", current.getX(), current.getY());
-			System.out.println(dir);
-
+			
 			// If the direction points to a cell not out of bounds and a cell that is a wall
 			if(!outOfBounds(current.getX() + dir.dx, current.getY() + dir.dy)
 				&& !outOfBounds(current.getX() + (dir.dx * 2), current.getY() + (dir.dy * 2))
@@ -271,16 +272,18 @@ public class GridMap
 				//System.out.println("Failed");
 			}
 		}
-
-		if(lastDir != null )
+		System.out.println(rand.nextInt(100));
+		if(lastDir != null && potentialDirections.contains(lastDir) && Math.abs(rand.nextInt(100)) < geneticDirectionFavor)
 		{
 			// Some variable (genetic algorithm gene) that causes a favor for previous direction
+			System.out.println(lastDir);
+			nextMove = allTiles[current.getX() + (lastDir.dx)][current.getY() + (lastDir.dy)];
 		}
 		else if(potentialDirections.size() != 0)
 		{
 			// Else, a random direction among the potential ones
 			nextDir = potentialDirections.get(Math.floorMod(rand.nextInt(), potentialDirections.size()));
-
+			lastDir = nextDir;
 			// Set next cell to current cell + chosen direction
 			nextMove = allTiles[current.getX() + (nextDir.dx)][current.getY() + (nextDir.dy)];
 			//System.out.printf("dirX: %d dirY: %d \n", current.getX() + (nextDir.dx), current.getY() + (nextDir.dy));
@@ -316,8 +319,6 @@ public class GridMap
 			// For each room, check for collision
 			if(room.checkIfCollision(posX, posY))
 			{
-				System.out.printf("nextMove failed collision check \n");
-				System.out.printf("checkX: %d, checkY: %d \n", posX, posY);
 				retVal = false;
 				break;
 			}
@@ -330,7 +331,7 @@ public class GridMap
 		// Returns true if the X or Y fall out of bounds
 		if(posX < 0 || posX >= gridWidth || posY < 0 || posY >= gridHeight)
 		{
-			System.out.println("OOB");
+			
 			retVal = true;
 		}
 
