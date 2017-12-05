@@ -56,10 +56,10 @@ public class GridMap
 			}
 		}
 
-		geneticAttempts = 0;
+		geneticAttempts = 500;
 		geneticRoomMax = 9;
 		geneticRoomMin = 5;
-		geneticDirectionFavor = 0;
+		geneticDirectionFavor = 101;
 		lastDir = null;
 	}
 
