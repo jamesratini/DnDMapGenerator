@@ -59,7 +59,7 @@ public class GridMap
 		geneticAttempts = 500;
 		geneticRoomMax = 9;
 		geneticRoomMin = 5;
-		geneticDirectionFavor = 101;
+		geneticDirectionFavor = rand.nextInt(100);
 		lastDir = null;
 	}
 
@@ -83,14 +83,14 @@ public class GridMap
 	      
           
 	      designateRooms();
-	      designatePotentialDoors();
+	      //designatePotentialDoors();
 	      expandMaze();
 	      drawCells(ig2, width, height, gridWidth, gridHeight);
 
 	      drawGrid(ig2, width / gridWidth, height / gridHeight);
 
-	      ImageIO.write(bi, "PNG", new File(".\\test.PNG"));
-	      ImageIO.write(bi, "JPEG", new File(".\\test.JPG"));
+	      ImageIO.write(bi, "PNG", new File(".\\Maps\\" + allTiles.toString() + ".PNG"));
+	      //ImageIO.write(bi, "JPEG", new File(".\\test.JPG"));
 	      
 		      
     	} 
@@ -198,21 +198,17 @@ public class GridMap
 	private void expandMaze()
 	{
 		// recursive backtracking algorithm
-
 		Vector<Cell> unvisitedCells = getUnvisitedCells();
-		//Direction lastDir = null;
 		Cell current = unvisitedCells.get(Math.floorMod(rand.nextInt(), unvisitedCells.size()));
-		//Cell current = unvisitedCells.remove(0);
 		Cell nextCell = null;
 		Cell finish = null;
-		//allTiles[current.getX()][current.getY()].changeCellType(Globals.HALLWAY);
 		Vector<Cell> cellStack = new Vector<Cell>();
 
 		cellStack.add(current);
 
 		while(!unvisitedCells.isEmpty())
 		{
-			//System.out.printf("currentX: %d currentY: %d \n", current.getX(), current.getY());
+			
 			allTiles[current.getX()][current.getY()].changeCellType(Globals.HALLWAY);
 			
 			// Select an unvisited cell(defined by WALL)
@@ -241,18 +237,18 @@ public class GridMap
 					current = unvisitedCells.remove(rand.nextInt(unvisitedCells.size()));
 				}
 				cellStack.add(current);
-				//unvisitedCells.remove(current);
 				
 			}
 		}
 	}
+
 	private Cell getNextMove(Cell current)
 	{
 		Cell nextMove = null;
 		Direction nextDir = null;
 		List<Direction> allDir = Arrays.asList(Direction.values());
 		Vector<Direction> potentialDirections = new Vector<Direction>();
-		//System.out.println(allDir);
+		
 		// Determine which directions are viable moves
 		for(Direction dir : allDir)
 		{
@@ -260,23 +256,18 @@ public class GridMap
 			// If the direction points to a cell not out of bounds and a cell that is a wall
 			if(!outOfBounds(current.getX() + dir.dx, current.getY() + dir.dy)
 				&& !outOfBounds(current.getX() + (dir.dx * 2), current.getY() + (dir.dy * 2))
-				//&& (allTiles[current.getX() + dir.dx][current.getY() + dir.dy].getCellType() != Globals.ROOM && allTiles[current.getX() + dir.dx][current.getY() + dir.dy].getCellType() != Globals.HALLWAY)
 				&& (allTiles[current.getX() + (dir.dx * 2)][current.getY() + (dir.dy * 2)].getCellType() != Globals.ROOM && allTiles[current.getX() + (dir.dx * 2)][current.getY() + (dir.dy * 2)].getCellType() != Globals.HALLWAY)
 				&& noRoomCollision(current.getX() + (dir.dx * 2), current.getY() + (dir.dy * 2)))
 			{
 				
 				potentialDirections.add(dir);
 			}
-			else
-			{
-				//System.out.println("Failed");
-			}
 		}
-		System.out.println(rand.nextInt(100));
+		
 		if(lastDir != null && potentialDirections.contains(lastDir) && Math.abs(rand.nextInt(100)) < geneticDirectionFavor)
 		{
 			// Some variable (genetic algorithm gene) that causes a favor for previous direction
-			System.out.println(lastDir);
+			
 			nextMove = allTiles[current.getX() + (lastDir.dx)][current.getY() + (lastDir.dy)];
 		}
 		else if(potentialDirections.size() != 0)
@@ -284,9 +275,10 @@ public class GridMap
 			// Else, a random direction among the potential ones
 			nextDir = potentialDirections.get(Math.floorMod(rand.nextInt(), potentialDirections.size()));
 			lastDir = nextDir;
+
 			// Set next cell to current cell + chosen direction
 			nextMove = allTiles[current.getX() + (nextDir.dx)][current.getY() + (nextDir.dy)];
-			//System.out.printf("dirX: %d dirY: %d \n", current.getX() + (nextDir.dx), current.getY() + (nextDir.dy));
+			
 		}
 
 		return nextMove;
@@ -338,21 +330,46 @@ public class GridMap
 		return retVal;
 	}
 		
+	public float evaluateFitness()
+	{
+		float fitness = 0;
+		//First iteration
+			// Door placement
+				// too many doors per room, rooms without doors, doors that don't lead to a room
+
+		// Iterate each cell
+			// If cell can be door (one direction = room and opposite direction = hallway) make it a door
+		for(Cell[] a : allTiles)
+		{
+			for(Cell c : a)
+			{
+				if(c.getCellType() == Globals.POSSIBLE_DOOR)
+				{
+					// If the cell is a door, check if it connects to a room, if it does increase fitness
+					if(((c.getX() != 0 && c.getX() != 49) && (c.getY() != 0 && c.getY() != 49)) && c.isRoomDoor(allTiles))
+					{
+						fitness += 2;
+					}
+					else
+					{
+						fitness--;
+					}
+				}
+				
+			}
+			
+		}
+
+		return fitness;
+	}
 	private void drawCells(Graphics2D pencil, int imgW, int imgH, int gridW, int gridH)
 	{
 		// Draw Rooms
 		
 		// Multiply X & Y by img width/height and grid width/height in order to fit the pictures resolution
-		float red;
-		float green;
-		float blue;
-
+		pencil.setColor(new Color(40, 27, 132));
 		for(RoomBlock room: rooms)
 		{
-			red = rand.nextFloat();
-			green = rand.nextFloat();
-			blue = rand.nextFloat();
-			pencil.setColor(new Color(red, green, blue));
 			pencil.fillRect(room.getLowX() * (imgW / gridWidth) + 1, room.getLowY() * (imgH / gridHeight) + 1, (room.getHighX() - room.getLowX()) * (imgW / gridWidth) - 1, (room.getHighY() - room.getLowY()) * (imgH / gridHeight) - 1);
 			
 		}
@@ -362,7 +379,12 @@ public class GridMap
 		{
 			for(int j = 0; j < gridH; j++)
 			{
-				if(allTiles[i][j].getCellType() == Globals.HALLWAY)
+				if(i == 0 && j == 0)
+				{
+					pencil.setColor(Color.RED);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
+				else if(allTiles[i][j].getCellType() == Globals.HALLWAY)
 				{
 					pencil.setColor(Color.WHITE);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
@@ -374,9 +396,10 @@ public class GridMap
 				}
 				else if( allTiles[i][j].getCellType() == Globals.POSSIBLE_DOOR)
 				{
-					pencil.setColor(Color.GRAY);
+					pencil.setColor(new Color(244, 199, 100));
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
+
 			}
 		}
 
