@@ -81,7 +81,7 @@ public class GridMap
 		      
     	
 	}
-	public void draw()
+	public void draw(String name)
 	{
 		  // TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
 	      // into integer pixels
@@ -99,7 +99,7 @@ public class GridMap
 
 	      drawGrid(ig2, width / gridWidth, height / gridHeight);
 
-	      ImageIO.write(bi, "PNG", new File(".\\Maps\\" + allTiles.toString() + ".PNG"));
+	      ImageIO.write(bi, "PNG", new File(".\\Maps\\" + name + ".PNG"));
 		}
 		catch(IOException ex)
 		{
@@ -350,9 +350,9 @@ public class GridMap
 		return retVal;
 	}
 		
-	public int evaluateFitness()
+	public double evaluateFitness()
 	{
-		int fitness = 0;
+		double fitness = 0;
 		Cell startCell = getRandomHallway();
 		Cell endCell = getRandomHallway();
 
@@ -360,15 +360,17 @@ public class GridMap
 		startY = startCell.getY();
 		endX = endCell.getX();
 		endY = endCell.getY();
-		allTiles[endX][endY].changeCellType(Globals.END_CELL);
+		
 		//First iteration
 			// Evalute placement of start and end cells
 			// Is the maze a complete maze
+		
 		if(solveMaze())
 		{
 			// Possible to reach the exit of the maze from the start - increase fitness drastically
 			fitness += 10;
 		}
+		fitness *= evaluateStartExitDistance(startCell, endCell);
 		
 		
 
@@ -440,6 +442,47 @@ public class GridMap
 		// go back
 		return false;
 	}
+	private double evaluateStartExitDistance(Cell start, Cell end)
+	{
+		double fitnessAdjustment = 0;
+		int xDiff = Math.abs(start.getX() - end.getX());
+		int yDiff = Math.abs(start.getY() - end.getY());
+
+		if(xDiff < 3 && yDiff < 3)
+		{
+			// Start and Exit are too close
+			// Severely gimp the fitness score
+			fitnessAdjustment = -1;
+		}
+		else if(xDiff < 10 && yDiff < 10)
+		{
+			// Start and Exit are a bit too close
+			// Reduce the fitness score so it would be very rare for this map to mate
+			fitnessAdjustment = 1.3;
+		}
+		else if(xDiff < 25 && yDiff < 25)
+		{
+			// Start and Exit are closer to a good distance
+			// Increase fitness score, but only slightly
+			fitnessAdjustment = 1.5;
+		}
+		else if(xDiff < 40 && yDiff < 40)
+		{
+			// Good
+			// Increase fitness score
+			fitnessAdjustment = 1.8;
+		}
+		else
+		{
+			// Really good
+			// Generously increase fitness score
+			fitnessAdjustment = 2.1;
+		}
+
+
+		return fitnessAdjustment;
+
+	}
 	private void drawCells(Graphics2D pencil, int imgW, int imgH, int gridW, int gridH)
 	{
 		// Draw Rooms
@@ -457,12 +500,7 @@ public class GridMap
 		{
 			for(int j = 0; j < gridH; j++)
 			{
-				if(i == 0 && j == 0)
-				{
-					pencil.setColor(Color.RED);
-					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
-				}
-				else if(allTiles[i][j].getCellType() == Globals.HALLWAY)
+				if(allTiles[i][j].getCellType() == Globals.HALLWAY)
 				{
 					pencil.setColor(Color.WHITE);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
@@ -487,12 +525,6 @@ public class GridMap
 					pencil.setColor(new Color(0, 0, 230));
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
-				else if(allTiles[i][j].getCellType() == Globals.END_CELL)
-				{
-					pencil.setColor(new Color(230, 0, 0));
-					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
-				}
-
 			}
 		}
 
