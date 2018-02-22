@@ -8,7 +8,7 @@ public class Driver
 
 		Population pop = new Population(20, x, y, 0.5);
 
-		pop.fitnessEvaluation();
+		
 		
 	}
 }

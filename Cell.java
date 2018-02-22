@@ -4,15 +4,13 @@ public class Cell
 {
 	// Genes
 	private int cellType;
-	/*private boolean trap;
-	private boolean magical;
-	private Monster monster;
-	private int cellLevel;*/
+	boolean visitedDuringSolutionPath;
 	private int posX;
 	private int posY;
 
 	public Cell(int coordinateX, int coordinateY, boolean wall)
 	{
+		visitedDuringSolutionPath = false;
 		posX = coordinateX;
 		posY = coordinateY;
 		if(wall)
@@ -30,11 +28,11 @@ public class Cell
 			// Door not connecting hallways to rooms lower the fitness score
 			// Fitness score decreases for each door connecting a room after N
 			// Fitness score decreases for each room that doesn't contain at least one door
-		Random rand = new Random();
+		/*Random rand = new Random();
 		if(rand.nextInt(10) > 5)
 		{
 			cellType = Globals.POSSIBLE_DOOR;
-		}
+		}*/
 		
 	}
 
@@ -56,6 +54,14 @@ public class Cell
 		return retVal;
 	}
 
+	public void setVisited(boolean val)
+	{
+		visitedDuringSolutionPath = val;
+	}
+	public boolean getVisisted()
+	{
+		return visitedDuringSolutionPath;
+	}
 	public void changeCellType(int type)
 	{
 		cellType = type;
