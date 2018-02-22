@@ -361,10 +361,15 @@ public class GridMap
 		endX = endCell.getX();
 		endY = endCell.getY();
 		
-		//First iteration
+		// First iteration
 			// Evalute placement of start and end cells
 			// Is the maze a complete maze
-		
+		// Second iteration
+			// Place doors through the maze
+				// Doors should connect HALLWAY to ROOM or ROOM to ROOM(Secret room. Rare?)
+				// update Rooms to keep track of how many doors they have
+			// Update maze pathing to be able to move through rooms (Might make it almost impossible to fail?)
+
 		if(solveMaze())
 		{
 			// Possible to reach the exit of the maze from the start - increase fitness drastically
