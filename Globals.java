@@ -6,4 +6,7 @@ public class Globals
 	public static int IMPASSABLE = 4;
 	public static int WALL = 5;
 	public static int POSSIBLE_DOOR = 6;
+	public static int SOLUTION_PATH = 7;
+	public static int TRIED_PATH = 8;
+	
 }
