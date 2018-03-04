@@ -23,6 +23,15 @@ public class GridMap
 	private int gridWidth;
 	private int gridHeight;
 	private Random rand;
+	private int geneticAttempts;
+	private int geneticRoomMin;
+	private int geneticRoomMax;
+	private int geneticDirectionFavor;
+	private Direction lastDir;
+	private int startX;
+	private int startY;
+	private int endX;
+	private int endY;
 
 
 	public GridMap(int width, int height)
@@ -50,42 +59,64 @@ public class GridMap
 				
 			}
 		}
+
+		geneticAttempts = 500;
+		geneticRoomMax = 9;
+		geneticRoomMin = 5;
+		geneticDirectionFavor = rand.nextInt(25);
+		lastDir = null;
+
+		
 	}
 
 	
-	public void Draw()
+	public void initialize()
 	{
+
+	      designateRooms();
+	      expandMaze();
+	      
+	      //ImageIO.write(bi, "JPEG", new File(".\\test.JPG"));
+	      
+		      
+    	
+	}
+	public void draw(String name)
+	{
+		  // TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
+	      // into integer pixels
 		try
 		{
-	      int width = 600, height = 600;
-
-	      // TYPE_INT_ARGB specifies the image format: 8-bit RGBA packed
-	      // into integer pixels
+			int width = 600, height = 600;
 	      BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
 
 	      Graphics2D ig2 = bi.createGraphics();
 
 	      ig2.setColor(Color.BLACK);
 	      ig2.fillRect(0, 0, width, height);
-	      ig2.setColor(Color.WHITE);
-	      
-	      
-          
-	      designateRooms(ig2, rooms, 40, width, height);
-	      designateCorridors();
+
 	      drawCells(ig2, width, height, gridWidth, gridHeight);
 
 	      drawGrid(ig2, width / gridWidth, height / gridHeight);
 
-	      ImageIO.write(bi, "PNG", new File(".\\test.PNG"));
-	      ImageIO.write(bi, "JPEG", new File(".\\test.JPG"));
+	      ImageIO.write(bi, "PNG", new File(".\\Maps\\" + name + ".PNG"));
+		}
+		catch(IOException ex)
+		{
+			ex.printStackTrace();
+		}
+		  
 	      
-		      
-    	} 
-	    catch (IOException ie) 
-	    {
-	      ie.printStackTrace( );
-	    }
+	}
+	private Cell getRandomHallway()
+	{
+		Cell returnCell = allTiles[rand.nextInt(gridWidth)][rand.nextInt(gridHeight)];
+		while(returnCell.getCellType() != Globals.HALLWAY)
+		{
+			returnCell = allTiles[rand.nextInt(gridWidth)][rand.nextInt(gridHeight)];
+		}
+
+		return returnCell;
 	}
 	private void drawGrid(Graphics2D pencil, int width, int height)
 	{
@@ -101,15 +132,15 @@ public class GridMap
 		}
 	}
 
-	private void designateRooms(Graphics2D pencil, Vector<RoomBlock> rooms, int attempts, int imgW, int imgH)
+	private void designateRooms()
 	{
 		// Attempt to draw N rooms
 		// Rooms can not overlap
 		// When a room is drawn, the appropriate cells in allTiles are notified and switch types
 		// A RoomBlock is also created
-		pencil.setColor(Color.WHITE);
-		int roomSizeWidth = 3;
-		int roomSizeHeight = 4;
+		
+		int roomSizeWidth;
+		int roomSizeHeight;
 
 		int startWidth; 
 		int startHeight;
@@ -117,17 +148,20 @@ public class GridMap
 		try
 		{
 			// Decide rooms based on tiles.
-			for(int i = 0; i < attempts; i++)
+			for(int i = 0; i < geneticAttempts; i++)
 			{
+				
+				roomSizeWidth = geneticRoomMin + 2 * (rand.nextInt(geneticRoomMax - geneticRoomMin) / 3);
+				roomSizeHeight = geneticRoomMin + 2 * (rand.nextInt(geneticRoomMax - geneticRoomMin) / 3);
 
 				// pick start origin
-				startWidth = Math.floorMod(rand.nextInt(), gridWidth);
-				startHeight = Math.floorMod(rand.nextInt(), gridHeight);
+				startWidth = 2 * (rand.nextInt(gridWidth));
+				startHeight = 2 * (rand.nextInt(gridHeight));
 
 				// Check if any overlap with existing rooms
 				// For each room in rooms, check if any overlap exists
-				if(startWidth >= 0 && (startWidth + roomSizeWidth) <= allTiles.length
-					&& startHeight >= 0 && (startHeight + roomSizeHeight) <= allTiles[0].length)
+				if(startWidth > 0 && (startWidth + roomSizeWidth + 1) <= allTiles.length
+					&& startHeight > 0 && (startHeight + roomSizeHeight + 1) <= allTiles[0].length)
 				{
 					
 					boolean overlap = false;
@@ -161,57 +195,43 @@ public class GridMap
 
 
 				}	
-				else
-				{
-					System.out.println("Coords didnt fall in grid");
-				}		
 			}		
 		}
 		catch(Exception ex)
 		{
 			ex.printStackTrace();
 		}
-		
-
-
-		
-		
 	}
-	private void designateCorridors()
+	private void designatePotentialDoors()
 	{
-	
-		expandMaze();
-			
+		for( RoomBlock room: rooms)
+		{
+			for(int i = (int)room.getBoundary().getX() + 1; i < (int)room.getBoundary().getX() + (int)room.getBoundary().getWidth() - 1; i++)
+			{
+				allTiles[i][(int)room.getBoundary().getY()].changeCellType(Globals.POSSIBLE_DOOR);
+			}
+		}
 
-		// Choose a direction randomly, set an adjectent cell to Globals.WALL
-
-		
 	}
+	
 	private void expandMaze()
 	{
 		// recursive backtracking algorithm
-
 		Vector<Cell> unvisitedCells = getUnvisitedCells();
-		Direction lastDir = null;
 		Cell current = unvisitedCells.get(Math.floorMod(rand.nextInt(), unvisitedCells.size()));
-		//Cell current = unvisitedCells.remove(0);
 		Cell nextCell = null;
 		Cell finish = null;
-		//allTiles[current.getX()][current.getY()].changeCellType(Globals.HALLWAY);
 		Vector<Cell> cellStack = new Vector<Cell>();
 
 		cellStack.add(current);
 
 		while(!unvisitedCells.isEmpty())
 		{
+			
 			allTiles[current.getX()][current.getY()].changeCellType(Globals.HALLWAY);
-			if(unvisitedCells.size() == 1)
-			{
-				finish = unvisitedCells.get(0);
-			}
 			
 			// Select an unvisited cell(defined by WALL)
-			nextCell = getNextMove(current, lastDir);
+			nextCell = getNextMove(current);
 
 			if(nextCell != null)
 			{
@@ -225,16 +245,24 @@ public class GridMap
 			}
 			else if(!cellStack.isEmpty())
 			{
+				// If no where to move, recurse
 				current = cellStack.remove(cellStack.size() - 1);
 			}
 			else
 			{
-				current = unvisitedCells.remove(Math.floorMod(rand.nextInt(), unvisitedCells.size()));
-				allTiles[current.getX()][current.getY()].changeCellType(Globals.HALLWAY);
+				// If no where to move and can't recurse, choose a new unvisited cell
+				current = unvisitedCells.remove(rand.nextInt(unvisitedCells.size()));
+				while(!noRoomCollision(current.getX(), current.getY()) && !unvisitedCells.isEmpty())
+				{
+					current = unvisitedCells.remove(rand.nextInt(unvisitedCells.size()));
+				}
+				cellStack.add(current);
+				
 			}
 		}
 	}
-	private Cell getNextMove(Cell current, Direction lastDir)
+
+	private Cell getNextMove(Cell current)
 	{
 		Cell nextMove = null;
 		Direction nextDir = null;
@@ -244,31 +272,33 @@ public class GridMap
 		// Determine which directions are viable moves
 		for(Direction dir : allDir)
 		{
-
+			
 			// If the direction points to a cell not out of bounds and a cell that is a wall
 			if(!outOfBounds(current.getX() + dir.dx, current.getY() + dir.dy)
 				&& !outOfBounds(current.getX() + (dir.dx * 2), current.getY() + (dir.dy * 2))
-				&& allTiles[current.getX() + dir.dx][current.getY() + dir.dy].getCellType() == Globals.WALL
-				&& allTiles[current.getX() + (dir.dx * 2)][current.getY() + (dir.dy * 2)].getCellType() == Globals.BLOCKED
-				&& noRoomCollision(current.getX()+ (dir.dx * 2), current.getY() + (dir.dy * 2)))
+				&& (allTiles[current.getX() + (dir.dx * 2)][current.getY() + (dir.dy * 2)].getCellType() != Globals.ROOM && allTiles[current.getX() + (dir.dx * 2)][current.getY() + (dir.dy * 2)].getCellType() != Globals.HALLWAY)
+				&& noRoomCollision(current.getX() + (dir.dx * 2), current.getY() + (dir.dy * 2)))
 			{
 				
 				potentialDirections.add(dir);
 			}
 		}
-
-		if(lastDir != null )
+		
+		if(lastDir != null && potentialDirections.contains(lastDir) && Math.abs(rand.nextInt(100)) < geneticDirectionFavor)
 		{
 			// Some variable (genetic algorithm gene) that causes a favor for previous direction
+			
+			nextMove = allTiles[current.getX() + (lastDir.dx)][current.getY() + (lastDir.dy)];
 		}
 		else if(potentialDirections.size() != 0)
 		{
 			// Else, a random direction among the potential ones
 			nextDir = potentialDirections.get(Math.floorMod(rand.nextInt(), potentialDirections.size()));
-			System.out.println(nextDir);
+			lastDir = nextDir;
 
 			// Set next cell to current cell + chosen direction
 			nextMove = allTiles[current.getX() + (nextDir.dx)][current.getY() + (nextDir.dy)];
+			
 		}
 
 		return nextMove;
@@ -279,7 +309,7 @@ public class GridMap
 		// step through all cells and return a vector of cells that are HALLWAY and arent at 0,0(starting point)
 		for(int i = 0; i < allTiles.length; i++)
 		{
-			for(int j = 0; j < allTiles[1].length; j++)
+			for(int j = 0; j < allTiles.length; j++)
 			{
 				if(allTiles[i][j].getCellType() == Globals.BLOCKED)
 				{
@@ -313,29 +343,161 @@ public class GridMap
 		// Returns true if the X or Y fall out of bounds
 		if(posX < 0 || posX >= gridWidth || posY < 0 || posY >= gridHeight)
 		{
+			
 			retVal = true;
 		}
 
 		return retVal;
 	}
 		
+	public double evaluateFitness()
+	{
+		double fitness = 0;
+		Cell startCell = getRandomHallway();
+		Cell endCell = getRandomHallway();
+
+		startX = startCell.getX();
+		startY = startCell.getY();
+		endX = endCell.getX();
+		endY = endCell.getY();
+		
+		// First iteration
+			// Evalute placement of start and end cells
+			// Is the maze a complete maze
+		// Second iteration
+			// Place doors through the maze
+				// Doors should connect HALLWAY to ROOM or ROOM to ROOM(Secret room. Rare?)
+				// update Rooms to keep track of how many doors they have
+			// Update maze pathing to be able to move through rooms (Might make it almost impossible to fail?)
+
+		if(solveMaze())
+		{
+			// Possible to reach the exit of the maze from the start - increase fitness drastically
+			fitness += 10;
+		}
+		fitness *= evaluateStartExitDistance(startCell, endCell);
+		
+		
+
+		return fitness;
+	}
+	private boolean solveMaze()
+	{
+		// recursive backtracking to find a possible solution to the maze
+
+		return exploreMaze(startX, startY);
+		
+	}
+	private boolean exploreMaze(int currX, int currY)
+	{
+		
+		// Accept - current cell is the exit --> return true
+		if(currX == endX && currY == endY)
+		{
+			// Found the exit
+			return true;
+		}
+		// Reject - current cell is a wall, OOB, or already visited --> return false
+		else if(outOfBounds(currX, currY) || (allTiles[currX][currY].getCellType() != Globals.HALLWAY && allTiles[currX][currY].getCellType() != Globals.SOLUTION_PATH) || allTiles[currX][currY].getVisisted())
+		{
+			// Ran into a wall, out of bounds, or somewhere we've already been
+			return false;
+		}
+		
+
+		// Passed all tests so move further
+		// Set this cell as visited so we don't return
+		allTiles[currX][currY].setVisited(true);
+		boolean result;
+		// Try to go down
+		result = exploreMaze(currX, currY + 1);
+		if(result)
+		{
+			allTiles[currX][currY].changeCellType(Globals.SOLUTION_PATH);
+			return true;
+		}
+
+		// Try to go right
+		result = exploreMaze(currX + 1, currY);
+		if(result)
+		{
+			allTiles[currX][currY].changeCellType(Globals.SOLUTION_PATH);
+			return true;
+		}
+
+		// Try to go up
+		result = exploreMaze(currX, currY - 1);
+		if(result)
+		{
+			allTiles[currX][currY].changeCellType(Globals.SOLUTION_PATH);
+			return true;
+		}
+
+		// Try to go left
+		result = exploreMaze(currX - 1, currY);
+		if(result)
+		{
+			allTiles[currX][currY].changeCellType(Globals.SOLUTION_PATH);
+			return true;
+		}
+
+		// If can't move anywhere, this cell is not part of a solution, time to recurse
+		allTiles[currX][currY].changeCellType(Globals.TRIED_PATH);
+
+		// go back
+		return false;
+	}
+	private double evaluateStartExitDistance(Cell start, Cell end)
+	{
+		double fitnessAdjustment = 0;
+		int xDiff = Math.abs(start.getX() - end.getX());
+		int yDiff = Math.abs(start.getY() - end.getY());
+
+		if(xDiff < 3 && yDiff < 3)
+		{
+			// Start and Exit are too close
+			// Severely gimp the fitness score
+			fitnessAdjustment = -1;
+		}
+		else if(xDiff < 10 && yDiff < 10)
+		{
+			// Start and Exit are a bit too close
+			// Reduce the fitness score so it would be very rare for this map to mate
+			fitnessAdjustment = 1.3;
+		}
+		else if(xDiff < 25 && yDiff < 25)
+		{
+			// Start and Exit are closer to a good distance
+			// Increase fitness score, but only slightly
+			fitnessAdjustment = 1.5;
+		}
+		else if(xDiff < 40 && yDiff < 40)
+		{
+			// Good
+			// Increase fitness score
+			fitnessAdjustment = 1.8;
+		}
+		else
+		{
+			// Really good
+			// Generously increase fitness score
+			fitnessAdjustment = 2.1;
+		}
+
+
+		return fitnessAdjustment;
+
+	}
 	private void drawCells(Graphics2D pencil, int imgW, int imgH, int gridW, int gridH)
 	{
 		// Draw Rooms
 		
 		// Multiply X & Y by img width/height and grid width/height in order to fit the pictures resolution
-		float red;
-		float green;
-		float blue;
-
-		for(int i = 0; i < rooms.size(); i++)
+		pencil.setColor(new Color(40, 27, 132));
+		for(RoomBlock room: rooms)
 		{
-			red = rand.nextFloat();
-			green = rand.nextFloat();
-			blue = rand.nextFloat();
-
-			pencil.fillRect(rooms.get(i).getLowX() * (imgW / gridWidth) + 1, rooms.get(i).getLowY() * (imgH / gridHeight) + 1, (rooms.get(i).getHighX() - rooms.get(i).getLowX()) * (imgW / gridWidth) - 1, (rooms.get(i).getHighY() - rooms.get(i).getLowY()) * (imgH / gridHeight) - 1);
-			pencil.setColor(new Color(red, green, blue));
+			pencil.fillRect(room.getLowX() * (imgW / gridWidth) + 1, room.getLowY() * (imgH / gridHeight) + 1, (room.getHighX() - room.getLowX()) * (imgW / gridWidth) - 1, (room.getHighY() - room.getLowY()) * (imgH / gridHeight) - 1);
+			
 		}
 		
 		// Draw Hallways
@@ -343,14 +505,29 @@ public class GridMap
 		{
 			for(int j = 0; j < gridH; j++)
 			{
-				if(allTiles[i][j].getCellType() == Globals.BLOCKED)
+				if(allTiles[i][j].getCellType() == Globals.HALLWAY)
 				{
 					pencil.setColor(Color.WHITE);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
-				else if(allTiles[i][j].getCellType() == Globals.WALL || allTiles[i][j].getCellType() == Globals.BLOCKED)
+				else if(allTiles[i][j].getCellType() == Globals.WALL)
 				{
 					pencil.setColor(Color.BLACK);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
+				else if( allTiles[i][j].getCellType() == Globals.POSSIBLE_DOOR)
+				{
+					pencil.setColor(new Color(244, 199, 100));
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
+				else if(allTiles[i][j].getCellType() == Globals.SOLUTION_PATH)
+				{
+					pencil.setColor(new Color(0, 230, 0));
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
+				else if (allTiles[i][j].getCellType() == Globals.TRIED_PATH)
+				{
+					pencil.setColor(new Color(0, 0, 230));
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
 			}
@@ -363,4 +540,3 @@ public class GridMap
 
 	
 }
-
