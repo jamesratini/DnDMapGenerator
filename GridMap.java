@@ -60,9 +60,9 @@ public class GridMap
 			}
 		}
 
-		geneticAttempts = 500;
-		geneticRoomMax = 9;
-		geneticRoomMin = 5;
+		geneticAttempts = 1000;
+		geneticRoomMax = 24;
+		geneticRoomMin = 3;
 		geneticDirectionFavor = rand.nextInt(25);
 		lastDir = null;
 
@@ -202,15 +202,29 @@ public class GridMap
 			ex.printStackTrace();
 		}
 	}
-	private void designatePotentialDoors()
+	private Vector<Cell> designatePotentialDoors()
 	{
-		for( RoomBlock room: rooms)
+		Vector<Cell> doors = new Vector<Cell>();
+		// Randomly place doors through out the maze
+		for(int i = 0; i < gridWidth; i++)
 		{
-			for(int i = (int)room.getBoundary().getX() + 1; i < (int)room.getBoundary().getX() + (int)room.getBoundary().getWidth() - 1; i++)
+			for(int j = 0; j < gridHeight; j++)
 			{
-				allTiles[i][(int)room.getBoundary().getY()].changeCellType(Globals.POSSIBLE_DOOR);
+				if(allTiles[i][j].getCellType() == Globals.WALL)
+				{
+					// % chance to turn cell into door?
+					int percentChance = rand.nextInt(50);
+					//System.out.printf("%d \n", percentChance);
+					if(rand.nextInt(100) < percentChance)
+					{
+						allTiles[i][j].changeCellType(Globals.DOOR);
+						doors.add(allTiles[i][j]);
+					}
+				}
 			}
 		}
+
+		return doors;
 
 	}
 	
@@ -376,10 +390,52 @@ public class GridMap
 			fitness += 10;
 		}
 		fitness *= evaluateStartExitDistance(startCell, endCell);
+
+		Vector<Cell> allDoors = designatePotentialDoors();
+		fitness += evaluateDoorPlacement(allDoors);
 		
 		
 
 		return fitness;
+	}
+	private int evaluateDoorPlacement(Vector<Cell> doors)
+	{
+		// For each door check if it connects HALLWAY to ROOM or ROOM to ROOM
+			// decrease fitness for each door that exists that doesnt do either of those
+		int fitness = 0;
+		for(Cell door : doors)
+		{
+			if(!outOfBounds(door.getX() - 1, door.getY() - 1) && !outOfBounds(door.getX() + 1, door.getY() + 1) && !properDoorPlacement(door))
+			{
+				fitness -= 1;
+			}
+		}
+		return fitness;
+	}
+	private boolean properDoorPlacement(Cell door)
+	{
+		int leftOfDoor = door.getX() - 1;
+		int rightOfDoor = door.getX() + 1;
+		int belowDoor = door.getY() + 1;
+		int aboveDoor = door.getY() -1;
+		if((allTiles[leftOfDoor][door.getY()].getCellType() == Globals.HALLWAY || allTiles[leftOfDoor][door.getY()].getCellType() == Globals.ROOM) && allTiles[rightOfDoor][door.getY()].getCellType() == Globals.ROOM)
+		{
+			return true;
+		}
+		else if((allTiles[door.getX()][aboveDoor].getCellType() == Globals.HALLWAY || allTiles[door.getX()][aboveDoor].getCellType() == Globals.ROOM) && allTiles[door.getX()][belowDoor].getCellType() == Globals.ROOM)
+		{
+			return true;
+		}
+		else if(allTiles[rightOfDoor][door.getY()].getCellType() == Globals.HALLWAY && allTiles[leftOfDoor][door.getY()].getCellType() == Globals.ROOM)
+		{
+			return true;
+		}
+		else if(allTiles[door.getX()][belowDoor].getCellType() == Globals.HALLWAY && allTiles[door.getX()][aboveDoor].getCellType() == Globals.ROOM)
+		{
+			return true;
+		}
+
+		return false;
 	}
 	private boolean solveMaze()
 	{
@@ -442,7 +498,7 @@ public class GridMap
 		}
 
 		// If can't move anywhere, this cell is not part of a solution, time to recurse
-		allTiles[currX][currY].changeCellType(Globals.TRIED_PATH);
+		//allTiles[currX][currY].changeCellType(Globals.TRIED_PATH);
 
 		// go back
 		return false;
@@ -515,7 +571,7 @@ public class GridMap
 					pencil.setColor(Color.BLACK);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
-				else if( allTiles[i][j].getCellType() == Globals.POSSIBLE_DOOR)
+				else if( allTiles[i][j].getCellType() == Globals.DOOR)
 				{
 					pencil.setColor(new Color(244, 199, 100));
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
