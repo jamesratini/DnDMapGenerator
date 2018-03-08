@@ -32,6 +32,8 @@ public class GridMap
 	private int startY;
 	private int endX;
 	private int endY;
+	private double fitness;
+	private String name;
 
 
 	public GridMap(int width, int height)
@@ -68,6 +70,10 @@ public class GridMap
 
 		
 	}
+	public GridMap(GridMap parentA, GridMap parentB)
+	{
+		// This constructor will be used for crossover
+	}
 
 	
 	public void initialize()
@@ -88,18 +94,19 @@ public class GridMap
 		try
 		{
 			int width = 600, height = 600;
-	      BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		    BufferedImage bi = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
+		    this.name = name;
+		    Graphics2D ig2 = bi.createGraphics();
 
-	      Graphics2D ig2 = bi.createGraphics();
+		    ig2.setColor(Color.BLACK);
+		    ig2.fillRect(0, 0, width, height);
 
-	      ig2.setColor(Color.BLACK);
-	      ig2.fillRect(0, 0, width, height);
+		    drawCells(ig2, width, height, gridWidth, gridHeight);
 
-	      drawCells(ig2, width, height, gridWidth, gridHeight);
+		    drawGrid(ig2, width / gridWidth, height / gridHeight);
 
-	      drawGrid(ig2, width / gridWidth, height / gridHeight);
+		    ImageIO.write(bi, "PNG", new File(".\\Maps\\" + name + ".PNG"));
 
-	      ImageIO.write(bi, "PNG", new File(".\\Maps\\" + name + ".PNG"));
 		}
 		catch(IOException ex)
 		{
@@ -107,6 +114,10 @@ public class GridMap
 		}
 		  
 	      
+	}
+	public String getName()
+	{
+		return name;
 	}
 	private Cell getRandomHallway()
 	{
@@ -366,7 +377,7 @@ public class GridMap
 		
 	public double evaluateFitness()
 	{
-		double fitness = 0;
+		fitness = 0;
 		Cell startCell = getRandomHallway();
 		Cell endCell = getRandomHallway();
 
@@ -393,10 +404,22 @@ public class GridMap
 
 		Vector<Cell> allDoors = designatePotentialDoors();
 		fitness += evaluateDoorPlacement(allDoors);
-		
-		
+		fitness += evaluateRooms();
+
+		if(fitness <= 0)
+		{
+			fitness = 1;
+		}
 
 		return fitness;
+	}
+	private int evaluateRooms()
+	{
+		// Iterate through all rooms
+		// Check how many doors room has on it's border
+			// Resonable amount for it's size?
+
+		return 0;
 	}
 	private int evaluateDoorPlacement(Vector<Cell> doors)
 	{
@@ -405,9 +428,17 @@ public class GridMap
 		int fitness = 0;
 		for(Cell door : doors)
 		{
-			if(!outOfBounds(door.getX() - 1, door.getY() - 1) && !outOfBounds(door.getX() + 1, door.getY() + 1) && !properDoorPlacement(door))
+			if(!outOfBounds(door.getX() - 1, door.getY() - 1) && !outOfBounds(door.getX() + 1, door.getY() + 1))
 			{
-				fitness -= 1;
+				if(!properDoorPlacement(door))
+				{
+					fitness -= 2;	
+				}
+				else
+				{
+					fitness += 2;
+				}
+				
 			}
 		}
 		return fitness;
@@ -543,6 +574,10 @@ public class GridMap
 
 		return fitnessAdjustment;
 
+	}
+	public double getFitness()
+	{
+		return fitness;
 	}
 	private void drawCells(Graphics2D pencil, int imgW, int imgH, int gridW, int gridH)
 	{
