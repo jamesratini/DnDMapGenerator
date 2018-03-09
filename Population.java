@@ -9,11 +9,16 @@ public class Population
 	private double mutationRate;
 	private double fitnessScores[];
 	private int popSize;
+	private int mapWidth;
+	private int mapHeight;
+	private int elitismSelectionMargin;
 
 	public Population(int size, int mapWidth, int mapHeight, double mutation) 
 	{
 		popSize = size;
 		mutationRate = mutation;
+		this.mapWidth = mapWidth;
+		this.mapHeight = mapHeight;
 		allMaps = new ArrayList<GridMap>(popSize);
 		fitnessScores = new double[popSize];
 
@@ -26,22 +31,38 @@ public class Population
 			
 			
 		}
-		// Sort in ascending order
-		sortByFitness();
 
-		// Choose a Map A and Map B for mating
-		// TODO: Dont allot duplicate parents
-		GridMap parentA = fitnessProportionateSelection();
-		GridMap parentB = fitnessProportionateSelection();
 
-		// Create offspring
-		crossover(parentA, parentB);
+		
 		
 
 	}
-	private void crossover(GridMap parentA, GridMap parentB)
+	public Population(int size, int mapWidth, int mapHeight, double mutation, int elitism) 
 	{
-		
+		popSize = size;
+		mutationRate = mutation;
+		this.mapWidth = mapWidth;
+		this.mapHeight = mapHeight;
+		elitismSelectionMargin = elitism;
+		allMaps = new ArrayList<GridMap>(popSize);
+	}
+
+	private GridMap crossover(GridMap parentA, GridMap parentB)
+	{
+		// Crossover will need to be much more complex for maps
+		// I mean come on, this is gonna be insane
+		// First iteration : basic cross over
+		// Treat each row in the maps like chromosomes and one point cross over
+		GridMap offspring = new GridMap(parentA, parentB);
+		return offspring;
+	}
+	public GridMap getGridMap(int index)
+	{
+		return allMaps.get(index);
+	}
+	private void addGridMap(GridMap map)
+	{
+		allMaps.add(map);
 	}
 	private void sortByFitness()
 	{
@@ -100,6 +121,62 @@ public class Population
 		// Fail safe - choose the most likely chosen map
 		selectedParent = allMaps.get(allMaps.size());
 		return selectedParent;
+	}
+	public int getPopSize()
+	{
+		return popSize;
+	}
+	public int getMapWidth()
+	{
+		return mapWidth;
+	}
+	public int getMapHeight()
+	{
+		return mapHeight;
+	}
+	public double getMutationRate()
+	{
+		return mutationRate;
+	}
+	public int getElitismSelectionMargin()
+	{
+		return elitismSelectionMargin;
+	}
+	public Population generateNextGen( int elitismIndex)
+	{
+		// Elitism selection - pass the top X of this population to the new generation
+		Population newPop = new Population(popSize, getMapWidth(), getMapHeight(), getMutationRate(), elitismIndex);
+
+		sortByFitness();
+		// allMaps is sorted in ascending order, so highest fitness maps are located at the end
+		for(int i = allMaps.size() - elitismIndex; i < allMaps.size(); i++)
+		{
+			newPop.addGridMap(allMaps.get(i));
+		}
+
+		// Fill new population with this populations children
+		for(int i = elitismIndex; i < allMaps.size(); i++)
+		{
+			newPop.addGridMap(produceChildMap());
+		}
+		
+
+		return newPop;
+
+	}
+	private GridMap produceChildMap()
+	{
+
+
+		// Choose a Map A and Map B for mating
+		// TODO: Dont allot duplicate parents
+		GridMap parentA = fitnessProportionateSelection();
+		GridMap parentB = fitnessProportionateSelection();
+
+		// Create offspring
+		GridMap child = crossover(parentA, parentB);
+
+		return child;
 	}
 
 }

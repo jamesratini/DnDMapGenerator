@@ -73,6 +73,56 @@ public class GridMap
 	public GridMap(GridMap parentA, GridMap parentB)
 	{
 		// This constructor will be used for crossover
+		// Iterate over each row and choose a random cross over point
+
+		gridWidth = parentA.getWidth();
+		gridHeight = parentA.getHeight();
+		allTiles = new Cell[gridWidth][gridHeight];
+		rand = new Random();
+		int crossoverPoint;
+		int crossoverParentSelection;
+		GridMap leftParent;
+		GridMap rightParent;
+
+		for(int i = 0; i < gridHeight; i++)
+		{
+			// Choose a crossover point
+			// Choose the parent to be the "left"
+			// Combine the row of each parent
+			crossoverPoint = rand.nextInt(gridHeight);
+			crossoverParentSelection = rand.nextInt(1);
+			
+
+			if(crossoverParentSelection == 0)
+			{
+				leftParent = parentA;
+				rightParent = parentB;
+			}
+			else
+			{
+				leftParent = parentB;
+				rightParent = parentA;
+			}
+
+			
+			for(int j = 0; j < gridHeight; j++)
+			{
+				
+
+				if(j <= crossoverPoint)
+				{
+					allTiles[i][j] = leftParent.getCell(i, j);
+				}
+				else
+				{
+					allTiles[i][j] = rightParent.getCell(i, j);
+				}
+
+			}
+
+
+
+		}
 	}
 
 	
@@ -86,6 +136,18 @@ public class GridMap
 	      
 		      
     	
+	}
+	public Cell getCell(int i, int j)
+	{
+		return allTiles[i][j];
+	}
+	public int getWidth()
+	{
+		return gridWidth;
+	}
+	public int getHeight()
+	{
+		return gridHeight;
 	}
 	public void draw(String name)
 	{
@@ -500,7 +562,7 @@ public class GridMap
 		result = exploreMaze(currX, currY + 1);
 		if(result)
 		{
-			allTiles[currX][currY].changeCellType(Globals.SOLUTION_PATH);
+			//allTiles[currX][currY].changeCellType(Globals.SOLUTION_PATH);
 			return true;
 		}
 
@@ -508,7 +570,7 @@ public class GridMap
 		result = exploreMaze(currX + 1, currY);
 		if(result)
 		{
-			allTiles[currX][currY].changeCellType(Globals.SOLUTION_PATH);
+			//allTiles[currX][currY].changeCellType(Globals.SOLUTION_PATH);
 			return true;
 		}
 
@@ -516,7 +578,7 @@ public class GridMap
 		result = exploreMaze(currX, currY - 1);
 		if(result)
 		{
-			allTiles[currX][currY].changeCellType(Globals.SOLUTION_PATH);
+			//allTiles[currX][currY].changeCellType(Globals.SOLUTION_PATH);
 			return true;
 		}
 
@@ -524,7 +586,7 @@ public class GridMap
 		result = exploreMaze(currX - 1, currY);
 		if(result)
 		{
-			allTiles[currX][currY].changeCellType(Globals.SOLUTION_PATH);
+			//allTiles[currX][currY].changeCellType(Globals.SOLUTION_PATH);
 			return true;
 		}
 
@@ -584,12 +646,12 @@ public class GridMap
 		// Draw Rooms
 		
 		// Multiply X & Y by img width/height and grid width/height in order to fit the pictures resolution
-		pencil.setColor(new Color(40, 27, 132));
-		for(RoomBlock room: rooms)
+		
+		/*for(RoomBlock room: rooms)
 		{
 			pencil.fillRect(room.getLowX() * (imgW / gridWidth) + 1, room.getLowY() * (imgH / gridHeight) + 1, (room.getHighX() - room.getLowX()) * (imgW / gridWidth) - 1, (room.getHighY() - room.getLowY()) * (imgH / gridHeight) - 1);
 			
-		}
+		}*/
 		
 		// Draw Hallways
 		for(int i = 0; i < gridW; i++)
@@ -606,6 +668,11 @@ public class GridMap
 					pencil.setColor(Color.BLACK);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
+				else if(allTiles[i][j].getCellType() == Globals.ROOM)
+				{
+					pencil.setColor(new Color(40, 27, 132));
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
 				else if( allTiles[i][j].getCellType() == Globals.DOOR)
 				{
 					pencil.setColor(new Color(244, 199, 100));
@@ -616,11 +683,11 @@ public class GridMap
 					pencil.setColor(new Color(0, 230, 0));
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
-				else if (allTiles[i][j].getCellType() == Globals.TRIED_PATH)
+				/*else if (allTiles[i][j].getCellType() == Globals.TRIED_PATH)
 				{
 					pencil.setColor(new Color(0, 0, 230));
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
-				}
+				}*/
 			}
 		}
 
