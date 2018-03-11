@@ -7,10 +7,12 @@ public class Cell
 	boolean visitedDuringSolutionPath;
 	private int posX;
 	private int posY;
+	private int roomAssignment;
 
 	public Cell(int coordinateX, int coordinateY, boolean wall)
 	{
 		visitedDuringSolutionPath = false;
+		roomAssignment = 0;
 		posX = coordinateX;
 		posY = coordinateY;
 		if(wall)
@@ -53,7 +55,14 @@ public class Cell
 
 		return retVal;
 	}
-
+	public int getRoomAssignment()
+	{
+		return roomAssignment;
+	}
+	public void setRoomAssignment(int x)
+	{
+		roomAssignment = x;
+	}
 	public void setVisited(boolean val)
 	{
 		visitedDuringSolutionPath = val;

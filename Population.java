@@ -24,9 +24,14 @@ public class Population
 
 		for(int i = 0; i < popSize; i++)
 		{
+			// Starting Population
+			// Type of map (Cavern, Castle, etc) will be decided here
+			// Cavern as default for now
+
+			// TODO: user selects type of map (determines fitness function)
 			allMaps.add(i, new GridMap(mapWidth, mapHeight));
 			allMaps.get(i).initialize();
-			fitnessScores[i] = allMaps.get(i).evaluateFitness();
+			fitnessScores[i] = allMaps.get(i).evaluateFitnessCavern();
 			allMaps.get(i).draw(Integer.toString(i));
 			
 			
@@ -106,14 +111,12 @@ public class Population
 		GridMap selectedParent;
 
 		double value = new Random().nextDouble();
-		System.out.printf("value: %f \n", value);
 
 		for(int i = 0; i < allMaps.size(); i++)
 		{
 			if(value < probabilities[i])
 			{
 				selectedParent = allMaps.get(i);
-				System.out.printf("selected: %f \n", probabilities[i]);
 				return selectedParent;
 			}
 		}		
