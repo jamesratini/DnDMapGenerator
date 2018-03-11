@@ -50,6 +50,14 @@ public class RoomBlock
 	{
 		return surroundingBoundary;
 	}
+	public int getWidth()
+	{
+		return xUpper - xLower;
+	}
+	public int getHeight()
+	{
+		return yUpper - yLower;
+	}
 	public int getLowX()
 	{
 		return xLower;
