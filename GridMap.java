@@ -945,6 +945,12 @@ public class GridMap
 					//pencil.setColor(new Color(40, 27, 132));
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
+				else
+				{
+					// cell is either blocked or has some other type(shouldnt happen)
+					pencil.setColor(new Color(255, 0 , 0));
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
 
 			
 			}

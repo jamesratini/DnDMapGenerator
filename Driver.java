@@ -10,7 +10,7 @@ public class Driver
 
 		// Must be included args
 		int mapType = 1; // 1 = cavern
-		int numGens = 2;
+		int numGens = 1;
 
 		Population pop = new Population(20, x, y, 0.001);
 		pop.initialize();
@@ -36,20 +36,23 @@ public class Driver
 			{
 				pop.getGridMap(i).Draw(Integer.toString((j * pop.getPopSize() + 1) + i));
 			}
+
+				GridMap roomsTestGrid = pop.getGridMap(pop.getPopSize() - 1);
+				System.out.printf("Map Name: %s",roomsTestGrid.getName());
+				Vector<Room> roomsTestVector = roomsTestGrid.getRoomsVector();
+				ArrayList<Cell> cells;
+				cells = roomsTestVector.get(roomsTestVector.size() - 1).getCells();
+				System.out.printf("num: %d \n", roomsTestVector.get(roomsTestVector.size() - 1).getNumber());
+				for(Cell zz: cells)
+				{
+					System.out.printf("x: %d, y: %d \n", zz.getX(), zz.getY());
+				}
 			
 			pop = pop.generateNextGen(5);
 		}
 		
 		// Test rooms
-		GridMap roomsTestGrid = pop.getGridMap(pop.getPopSize() - 1);
-		Vector<Room> roomsTestVector = roomsTestGrid.getRoomsVector();
-		ArrayList<Cell> cells;
-		cells = roomsTestVector.get(0).getCells();
-		System.out.printf("num: %d \n", roomsTestVector.get(0).getNumber());
-		for(Cell zz: cells)
-		{
-			//System.out.printf("x: %d, y: %d \n", zz.getX(), zz.getY());
-		}
+	
 
 		
 		
