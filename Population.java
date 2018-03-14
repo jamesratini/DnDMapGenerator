@@ -7,12 +7,12 @@ public class Population
 	// Array of GridMaps
 	private ArrayList<GridMap> allMaps;
 	private double mutationRate;
-	private double fitnessScores[];
 	private int popSize;
 	private int mapWidth;
 	private int mapHeight;
 	private int elitismSelectionMargin;
 
+	// First and only first population constructor
 	public Population(int size, int mapWidth, int mapHeight, double mutation) 
 	{
 		popSize = size;
@@ -20,8 +20,12 @@ public class Population
 		this.mapWidth = mapWidth;
 		this.mapHeight = mapHeight;
 		allMaps = new ArrayList<GridMap>(popSize);
-		fitnessScores = new double[popSize];
+		
 
+	}
+
+	public void initialize()
+	{
 		for(int i = 0; i < popSize; i++)
 		{
 			// Starting Population
@@ -31,25 +35,12 @@ public class Population
 			// TODO: user selects type of map (determines fitness function)
 			allMaps.add(i, new GridMap(mapWidth, mapHeight));
 			allMaps.get(i).initialize();
-			fitnessScores[i] = allMaps.get(i).evaluateFitnessCavern();
-			allMaps.get(i).draw(Integer.toString(i));
-			
-			
 		}
-
-
-		
-		
-
 	}
-	public Population(int size, int mapWidth, int mapHeight, double mutation, int elitism) 
+
+	public ArrayList<GridMap> getMaps()
 	{
-		popSize = size;
-		mutationRate = mutation;
-		this.mapWidth = mapWidth;
-		this.mapHeight = mapHeight;
-		elitismSelectionMargin = elitism;
-		allMaps = new ArrayList<GridMap>(popSize);
+		return allMaps;
 	}
 
 	private GridMap crossover(GridMap parentA, GridMap parentB)
@@ -58,7 +49,7 @@ public class Population
 		// I mean come on, this is gonna be insane
 		// First iteration : basic cross over
 		// Treat each row in the maps like chromosomes and one point cross over
-		GridMap offspring = new GridMap(parentA, parentB);
+		GridMap offspring = new GridMapCavern(parentA, parentB, getMutationRate());
 		return offspring;
 	}
 	public GridMap getGridMap(int index)
@@ -145,14 +136,16 @@ public class Population
 	{
 		return elitismSelectionMargin;
 	}
-	public Population generateNextGen( int elitismIndex)
+	public Population generateNextGen(int elitismIndex)
 	{
 		// Elitism selection - pass the top X of this population to the new generation
-		Population newPop = new Population(popSize, getMapWidth(), getMapHeight(), getMutationRate(), elitismIndex);
+		Population newPop = new Population(popSize, getMapWidth(), getMapHeight(), getMutationRate());
 
+		// sort THIS population's maps by fitness
 		sortByFitness();
-		// allMaps is sorted in ascending order, so highest fitness maps are located at the end
-		for(int i = allMaps.size() - elitismIndex; i < allMaps.size(); i++)
+
+		// allMaps is sorted in descending order, so highest fitness maps are located at the end
+		for(int i = allMaps.size() - 1; i > allMaps.size() - elitismIndex - 1; i--)
 		{
 			newPop.addGridMap(allMaps.get(i));
 		}

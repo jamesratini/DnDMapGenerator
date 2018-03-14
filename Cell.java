@@ -44,12 +44,11 @@ public class Cell
 		// North door - South hall
 		if((allTiles[getX()][getY() - 1].getCellType() == Globals.ROOM && allTiles[getX()][getY() + 1].getCellType() == Globals.HALLWAY) || (allTiles[getX()][getY() - 1].getCellType() == Globals.HALLWAY && allTiles[getX()][getY() + 1].getCellType() == Globals.ROOM))
 		{
-			System.out.printf("%d,%d \n", getX(), getY());
 			retVal = true;
 		}
 		else if((allTiles[getX() - 1][getY()].getCellType() == Globals.ROOM && allTiles[getX() + 1][getY()].getCellType() == Globals.HALLWAY) || (allTiles[getX() - 1][getY()].getCellType() == Globals.HALLWAY && allTiles[getX() + 1][getY()].getCellType() == Globals.ROOM))
 		{
-			System.out.printf("%d,%d \n", getX(), getY());
+			
 			retVal = true;
 		}
 
