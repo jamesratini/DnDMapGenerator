@@ -21,6 +21,7 @@ import java.util.List;
 public class GridMapCavern extends GridMap
 {
 	double mutationRate;
+	List<Direction> allDir;
 	
 	// Constructor for all maps after first generation
 	public GridMapCavern(GridMap parentA, GridMap parentB, double mutationRate)
@@ -30,6 +31,7 @@ public class GridMapCavern extends GridMap
 		// Iterate over each row and choose a random cross over point
 
 		this.mutationRate = mutationRate;
+		allDir = Arrays.asList(Direction.values());
 		int crossoverPoint;
 		int crossoverParentSelection;
 		GridMap leftParent;
@@ -69,12 +71,12 @@ public class GridMapCavern extends GridMap
 					{
 						// Mutation occurs here
 						
-						super.setCell(i, j, mutate(leftParent.getCell(i, j), mutationRate));
+						super.getCell(i, j).changeCellType(mutate(leftParent.getCell(i, j), mutationRate).getCellType());
 					}
 					else
 					{
 						// Mutation occurs here
-						super.setCell(i, j, mutate(rightParent.getCell(i, j), mutationRate));
+						super.getCell(i, j).changeCellType(mutate(rightParent.getCell(i, j), mutationRate).getCellType());
 					}
 					
 					
@@ -87,12 +89,12 @@ public class GridMapCavern extends GridMap
 					if(j <= crossoverPoint)
 					{
 						// Mutation occurs here
-						super.setCell(j, i, mutate(leftParent.getCell(j, i), mutationRate));
+						super.getCell(j, i).changeCellType(mutate(leftParent.getCell(j, i), mutationRate).getCellType());
 					}
 					else
 					{
 						// Mutation occurs here
-						super.setCell(j, i, mutate(rightParent.getCell(j, i), mutationRate));
+						super.getCell(j, i).changeCellType(mutate(rightParent.getCell(j, i), mutationRate).getCellType());
 					}
 					
 					assignToVector(super.getCell(j,i));
@@ -104,9 +106,11 @@ public class GridMapCavern extends GridMap
 
 		}
 
+		fillRoomsVector();
+
 
 	}
-	
+
 
 	@Override
 	public void initialize()
@@ -165,7 +169,7 @@ public class GridMapCavern extends GridMap
 
 		if(walls.size() < 50)
 		{
-			fitness -= walls.size();
+			fitness -= 0;
 		}
 		else if(walls.size() > 50 && walls.size() < 100)
 		{
@@ -173,7 +177,7 @@ public class GridMapCavern extends GridMap
 		}
 		else
 		{
-			fitness -= walls.size();
+			fitness -= 0;
 		}
 
 		// If a wall is surrounded by rooms or all rooms and 1 other wall, thats good
@@ -194,6 +198,25 @@ public class GridMapCavern extends GridMap
 
 		}
 
+		// Ideally, walls should surround rooms
+		// If a wall touches a room on one side and all other sides are walls - increase fitness
+		// If a wall touches a room on one side and some other sides are walls - sorta increase fitness
+		for(Cell wall : walls)
+		{
+			switch(wallSurroundings(wall))
+			{
+				// Wall in room or surrounded by walls
+				case 0: case 1: fitness += 25; break;
+				// Wall borders a room
+				case 2: fitness += 20; break;
+				// Wall exists somewhere, but not in an ideal spot
+				case 3: fitness += 5; break;
+				// Wall exists
+				case 4: break;
+
+			}
+			
+		}
 
 		return fitness;
 
@@ -298,5 +321,58 @@ public class GridMapCavern extends GridMap
 		}
 
 		return fitness;
+	}
+
+	// FITNESS FUNCTION HELPERS
+	private int wallSurroundings(Cell wall)
+	{
+		// if wall touches a room on one side
+		int wallX = wall.getX();
+		int wallY = wall.getY();
+		int wallCount = 0;
+		int roomCount = 0;
+
+		for(Direction dir : allDir)
+		{
+			if(!outOfBounds(wallX + dir.dx, wallY + dir.dy) && super.getCell(wallX + dir.dx, wallY + dir.dy).getCellType() == Globals.ROOM)
+			{
+				roomCount++;
+			}
+			else if(!outOfBounds(wallX + dir.dx, wallY + dir.dy) && super.getCell(wallX + dir.dx, wallY + dir.dy).getCellType() == Globals.WALL)
+			{
+				wallCount++;
+			}
+
+
+		}
+
+		if(((roomCount == 4 || roomCount == 3) && (wallCount == 0 || wallCount == 1)))
+		{
+			// Wall in the middle of a room, possibly next to another wall
+			// Acceptable 
+			return 0;
+		}
+		else if(wallCount == 4)
+		{
+			// Surrounded by other walls, good, in a cavern everything surrounding the rooms should be a wall
+			return 1;
+		}
+		else if(roomCount == 1)
+		{
+			// Wall borders a room, perfect
+			return 2;
+		}
+		else if(roomCount == 0 && wallCount == 0)
+		{
+			// Wall exists somewhere, but not in a good spot
+			// The wall should be there though, dont punish a cavern for having walls
+			return 3;
+		}
+		else
+		{
+
+			return 4;
+		}
+		
 	}
 }

@@ -12,7 +12,7 @@ public class Cell
 	public Cell(int coordinateX, int coordinateY, boolean wall)
 	{
 		visitedDuringSolutionPath = false;
-		roomAssignment = 0;
+		roomAssignment = -1;
 		posX = coordinateX;
 		posY = coordinateY;
 		if(wall)
