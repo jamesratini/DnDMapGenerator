@@ -8,11 +8,13 @@ public class Cell
 	private int posX;
 	private int posY;
 	private int roomAssignment;
+	private int hallwayAssignment;
 
 	public Cell(int coordinateX, int coordinateY, boolean wall)
 	{
 		visitedDuringSolutionPath = false;
 		roomAssignment = -1;
+		hallwayAssignment = -1;
 		posX = coordinateX;
 		posY = coordinateY;
 		if(wall)
@@ -58,9 +60,17 @@ public class Cell
 	{
 		return roomAssignment;
 	}
+	public int getHallwayAssignment()
+	{
+		return hallwayAssignment;
+	}
 	public void setRoomAssignment(int x)
 	{
 		roomAssignment = x;
+	}
+	public void setHallwayAssignment(int x)
+	{
+		hallwayAssignment = x;
 	}
 	public void setVisited(boolean val)
 	{

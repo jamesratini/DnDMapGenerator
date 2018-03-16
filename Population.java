@@ -169,6 +169,11 @@ public class Population
 		GridMap parentA = fitnessProportionateSelection();
 		GridMap parentB = fitnessProportionateSelection();
 
+		while(parentA == parentB)
+		{
+			parentB = fitnessProportionateSelection();
+		}
+
 		// Create offspring
 		GridMap child = crossover(parentA, parentB);
 

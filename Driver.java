@@ -10,29 +10,30 @@ public class Driver
 
 		// Must be included args
 		int mapType = 1; // 1 = cavern
-		int numGens = 1;
+		int numGens = 50;
 
-		Population pop = new Population(10, x, y, 0.001);
+		Population pop = new Population(15, x, y, 0.03);
 		pop.initialize();
 
 		for(GridMap map : pop.getMaps())
-			{
-				// Evaluate each maps fitness then draw the map
-				// Depending on which map the user selects, the fitness function changes
-				AQ.add(() -> {
-					 map.evaluateFitness();
-				});	
-			}
-			
-			
-
-			for(int i = 0; i < pop.getPopSize(); i++)
-			{
-				pop.getGridMap(i).Draw(Integer.toString(i));
-			}
-			AQ.finish();
+		{
+			// Evaluate each maps fitness then draw the map
+			// Depending on which map the user selects, the fitness function changes
+			//AQ.add(() -> {
+				 map.evaluateFitness();
+			//});	
+		}
 		
+			
 
+		for(int i = 0; i < pop.getPopSize(); i++)
+		{
+			pop.getGridMap(i).Draw(Integer.toString(i + 1));
+		}
+		//AQ.finish();
+	
+
+		// Test hallways
 		for(int j = 0; j < numGens; j++)
 		{
 			System.out.printf("Starting generation %d out of %d \n", j, numGens);
@@ -43,9 +44,9 @@ public class Driver
 			{
 				// Evaluate each maps fitness then draw the map
 				// Depending on which map the user selects, the fitness function changes
-				AQ.add(() -> {
+				//AQ.add(() -> {
 					 map.evaluateFitness();
-				});	
+				//});	
 			}
 			
 
@@ -54,7 +55,7 @@ public class Driver
 				pop.getGridMap(i).Draw(Integer.toString(((j + 1) * pop.getPopSize() + 1) + i));
 			}
 
-			AQ.finish();
+			//AQ.finish();
 
 	
 			
