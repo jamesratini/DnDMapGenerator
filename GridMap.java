@@ -99,6 +99,7 @@ public class GridMap
 	}
 	protected Cell getCell(int i, int j)
 	{
+
 		return allTiles[i][j];
 	}
 	public void setCell(int i, int j, Cell c)
@@ -258,12 +259,12 @@ public class GridMap
 	    {
 	    	for(int j = 0; j <gridHeight; j++)
 	    	{
-	    		if(allTiles[i][j].getCellType() == Globals.ROOM && allTiles[i][j].getRoomAssignment() == -1)
+	    		if(allTiles[i][j].getCellType() == Globals.ROOM&& allTiles[i][j].getRoomAssignment() == -1)
 				{
 					// Start a new room here
 					
 					rooms.add(new Room(rooms.size()));
-					//System.out.printf("Starting Room %d \n", rooms.size());
+					
 					roomFill(allTiles[i][j].getX(), allTiles[i][j].getY());
 				}
 				else if(allTiles[i][j].getCellType() == Globals.HALLWAY && allTiles[i][j].getHallwayAssignment() == -1)
@@ -279,8 +280,7 @@ public class GridMap
 	    		
 	    	}
 	    }
-
-	    System.out.printf("rooms size: %d hallways size: %d \n",rooms.size(), hallways.size());
+	    //System.out.printf("Num rooms: %d num hallways: %d\n", rooms.size(), hallways.size());
 	}
 	
 	private boolean hallFill(int locationX, int locationY)
@@ -341,7 +341,7 @@ public class GridMap
 
 		
 		// Reject - current cell is a wall, OOB, or already visited --> return false
-		if(outOfBounds(locationX, locationY) || allTiles[locationX][locationY].getCellType() != Globals.ROOM || allTiles[locationX][locationY].getRoomAssignment() > -1)
+		if(outOfBounds(locationX, locationY) || allTiles[locationX][locationY].getCellType() != Globals.ROOM|| allTiles[locationX][locationY].getRoomAssignment() > -1)
 		{
 			// Ran into a wall, out of bounds, or somewhere we've already been
 			return false;
@@ -430,8 +430,8 @@ public class GridMap
 		int startWidth; 
 		int startHeight;
 
-		int geneticAttempts = 75;
-		int geneticRoomMax = 18;
+		int geneticAttempts = 50;
+		int geneticRoomMax = 12;
 		int geneticRoomMin = 3;
 		
 		try
@@ -1068,7 +1068,7 @@ public class GridMap
 				{
 					try
 					{
-						pencil.setColor(new Color(0,0,255 ));
+						pencil.setColor(Color.BLUE);
 						pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 					}
 					catch(Exception ex)
@@ -1081,19 +1081,40 @@ public class GridMap
 				else if( allTiles[i][j].getCellType() == Globals.DOOR)
 				{
 					//pencil.setColor(Color.WHITE);
-					pencil.setColor(new Color(244, 199, 100));
+					pencil.setColor(Color.GRAY);
 					//pencil.setColor(new Color(40, 27, 132));
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
+				else if(allTiles[i][j].getCellType() == Globals.TEST_MUTATION)
+				{
+					pencil.setColor(Color.PINK);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
+				
 				else
 				{
 					// cell is either blocked or has some other type(shouldnt happen)
-					pencil.setColor(new Color(0, 255 , 0));
+					pencil.setColor(Color.RED);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
 
 			
 			}
+		}
+		for(Room r : rooms)
+		{
+			// testing room assignment
+			for(Cell c: r.getCells())
+			{
+				if(c.getCellType() == Globals.ROOM)
+				{
+					pencil.setColor(new Color(0,255,0));
+					pencil.fillRect(c.getX() * (imgW / gridWidth), c.getY() * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));	
+				}
+				
+
+			}
+
 		}
 
 

@@ -10,7 +10,7 @@ public enum Direction
 	SOUTH(2, 0, 1),
 	WEST(3, -1, 0);
 
-	public int dx, dy;
+	public int dx, dy, ordinal;
 	public boolean horizontalMove, verticalMove;
 	public Direction opposite;
 	private static final Random RAND = new Random();
@@ -21,8 +21,14 @@ public enum Direction
 	{
 		dx = x;
 		dy = y;
+		this.ordinal = ordinal;
 		horizontalMove = dx != 0;
 		verticalMove = dy != 0;
+	}
+
+	public int getOrdinal()
+	{
+		return ordinal;
 	}
 
 	public static Direction randomDir()
