@@ -28,6 +28,24 @@ public class Room
 	{
 		allCells.add(c);
 	}
+	public Cell get(int x, int y)
+	{
+		Cell retVal = null;
+		for(int i = 0; i < allCells.size(); i++)
+		{
+			if(allCells.get(i).getX() == x && allCells.get(i).getY() == y)
+			{
+				retVal = allCells.get(i);
+				break;
+			}
+		}
+
+		return retVal;
+	}
+	public int size()
+	{
+		return allCells.size();
+	}
 	public void remove(int x, int y)
 	{
 		// Can't just call remove on allCells because the cells in allCells are a reference to the parent GridMap in some cases
@@ -41,13 +59,13 @@ public class Room
 			}
 		}
 	}
-	public int[] getCenter()
+	public Cell getCenter()
 	{
 		int lowestX = 100;
 		int lowestY = 100;
 		int highestX = 0;
 		int highestY = 0;
-		int[] center = new int[2];
+		
 		
 
 		for(Cell c : allCells)
@@ -64,14 +82,12 @@ public class Room
 			if(c.getY() > highestY)
 				highestY = c.getY();
 		}
+		System.out.printf("getCenter lx: %d hx: %d ly: %d hy: %d \n",lowestX, highestX, lowestY, highestY);
+		int centerX = highestX - ((highestX - lowestX) / 2);
+		int centerY = highestY - ((highestY - lowestY) / 2);
 
-		int centerX = highestX - (lowestX / 2);
-		int centerY = highestY - (lowestY / 2);
-
-		center[0] = centerX;
-		center[1] = centerY;
-
-		return center;
+		
+		return get(centerX, centerY);
 
 	}
 

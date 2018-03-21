@@ -24,7 +24,7 @@ public class GridMap
 	private int gridHeight;
 	private Random rand;
 	private Direction lastDir;
-	private int fitness;
+	private double fitness;
 	private Vector<Cell> doors;
 	private Vector<Cell> walls;
 	private Vector<Hallway> hallways;
@@ -127,6 +127,10 @@ public class GridMap
 	public double getFitness()
 	{
 		return fitness;
+	}
+	protected void setFitness(double fit)
+	{
+		fitness = fit;
 	}
 	protected Vector<Hallway> getHallwaysVector()
 	{
@@ -259,7 +263,7 @@ public class GridMap
 	    {
 	    	for(int j = 0; j <gridHeight; j++)
 	    	{
-	    		if(allTiles[i][j].getCellType() == Globals.ROOM&& allTiles[i][j].getRoomAssignment() == -1)
+	    		if(allTiles[i][j].getCellType() == Globals.ROOM && allTiles[i][j].getRoomAssignment() == -1)
 				{
 					// Start a new room here
 					
@@ -638,7 +642,7 @@ public class GridMap
 
 
 
-	public int evaluateFitness()
+	public double evaluateFitness()
 	{
 		
 		
@@ -656,7 +660,7 @@ public class GridMap
 			fitness += 10;
 		}
 
-		fitness *= evaluateStartExitDistance(startCell, endCell);
+		fitness += evaluateStartExitDistance(startCell, endCell);
 
 		// Should be a lot of rooms
 		// Rooms should be large and non-uniform
@@ -671,13 +675,13 @@ public class GridMap
 
 		return fitness;
 	}
-	private int evaluateWalls()
+	private double evaluateWalls()
 	{
 		// Walls can be short clumps inside rooms. Act as pillars in the cave
 		// Walls should be fairly abundant
 
 		
-		int fitness = 0;
+		double fitness = 0;
 
 		if(walls.size() < 50)
 		{
@@ -715,9 +719,9 @@ public class GridMap
 
 
 	}
-	private int evaluateHallways()
+	private double evaluateHallways()
 	{
-		int fitness = 0;
+		double fitness = 0;
 		
 		// Caverns should rarely ever have hallways
 		if(hallways.size() == 0 || hallways.size() < 25)
@@ -737,9 +741,9 @@ public class GridMap
 
 		return fitness;
 	}
-	private int evaluateRooms()
+	private double evaluateRooms()
 	{
-		int fitness = 0;
+		double fitness = 0;
 		int halfMap = gridHeight * gridWidth / 2;
 		int numRoomCells = 0;
 		int numConnectingRooms;
@@ -768,12 +772,12 @@ public class GridMap
 
 		return fitness;
 	}
-	private int evaluateDoors()
+	private double evaluateDoors()
 	{
 		// Doors shouldn't exist in a cave
 		// The less doors, the better fitness
 		
-		int fitness = 0;
+		double fitness = 0;
 		
 		if(doors.size() == 0 || doors.size() < 10)
 		{
