@@ -276,6 +276,7 @@ public class GridMap
 					// Start new hallway
 					hallways.add(new Hallway(hallways.size()));
 					hallFill(allTiles[i][j].getX(), allTiles[i][j].getY());
+					
 				}
 				else
 				{
@@ -1015,7 +1016,8 @@ public class GridMap
 		    ig2.setColor(Color.BLACK);
 		    ig2.fillRect(0, 0, width, height);
 
-		    drawCells(ig2, width, height, gridWidth, gridHeight);
+		    //drawCells(ig2, width, height, gridWidth, gridHeight);
+		    drawComplete(ig2, width, height, gridWidth, gridHeight);
 
 		    drawGrid(ig2, width / gridWidth, height / gridHeight);
 
@@ -1041,6 +1043,27 @@ public class GridMap
 	    for(int i = 0; i < gridHeight; i++)
 		{
 			pencil.drawLine(0, i * height, height * gridWidth, i * height);	
+		}
+	}
+
+	private void drawComplete(Graphics2D pencil, int imgW, int imgH, int gridW, int gridH)
+	{
+		pencil.setColor(Color.WHITE);
+		for(int i = 0; i < gridW; i++)
+		{
+			for(int j = 0; j < gridH; j++)
+			{
+				 if(allTiles[i][j].getCellType() == Globals.WALL || allTiles[i][j].getCellType() == Globals.BLOCKED)
+				{
+					pencil.setColor(Color.BLACK);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
+				else
+				{
+					pencil.setColor(new Color(105, 105, 105));
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
+			}
 		}
 	}
 

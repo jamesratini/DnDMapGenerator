@@ -12,7 +12,7 @@ public class Driver
 		int mapType = 1; // 1 = cavern
 		int numGens = 200;
 
-		Population pop = new Population(15, x, y, 0.3);
+		Population pop = new Population(15, x, y, 0.10);
 		pop.initialize();
 
 		for(GridMap map : pop.getMaps())
@@ -45,10 +45,10 @@ public class Driver
 			{
 				// Evaluate each maps fitness then draw the map
 				// Depending on which map the user selects, the fitness function changes
-				AQ.add(() -> {
+				//AQ.add(() -> {
 					 map.evaluateFitness();
 					  System.out.printf("Fitness: %f\n", map.getFitness());
-				});	
+				//});	
 			}
 			
 
@@ -57,7 +57,7 @@ public class Driver
 				pop.getGridMap(i).Draw(Integer.toString(((j + 1) * pop.getPopSize() + 1) + i));
 			}
 
-			AQ.finish();
+			//AQ.finish();
 
 	
 			

@@ -27,7 +27,10 @@ public class Hallway
 	{
 		return allCells;
 	}
-
+	public int size()
+	{
+		return allCells.size();
+	}
 	public int getNumber()
 	{
 		return hallNum;
@@ -35,6 +38,19 @@ public class Hallway
 	public Cell getRandomCell()
 	{
 		return allCells.get(rand.nextInt(allCells.size()));
+	}
+	public void purge()
+	{
+		while(allCells.size() > 0)
+		{
+			allCells.get(0).changeCellType(Globals.WALL);
+			allCells.get(0).setHallwayAssignment(-1);
+			allCells.remove(allCells.get(0));
+		}
+	}
+	public void removeAllNonHallways()
+	{
+
 	}
 	public boolean contains(int x, int y)
 	{

@@ -127,6 +127,15 @@ public class Room
 
 		return retCell;
 	}
+	public void purge()
+	{
+		while(allCells.size() > 0)
+		{
+			allCells.get(0).changeCellType(Globals.WALL);
+			allCells.get(0).setRoomAssignment(-1);
+			allCells.remove(allCells.get(0));
+		}
+	}
 	public boolean noOverlap(int posX, int posY)
 	{
 		int lowestX = 100;
