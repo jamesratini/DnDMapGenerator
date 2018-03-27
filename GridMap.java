@@ -40,6 +40,7 @@ public class GridMap
 		gridHeight = height;
 		allTiles = new Cell[gridWidth][gridHeight];
 		rand = new Random();
+		fitness = 0;
 
 		hallways = new Vector<Hallway>();
 		doors = new Vector<Cell>();
@@ -287,7 +288,7 @@ public class GridMap
 	    }
 	    //System.out.printf("Num rooms: %d num hallways: %d\n", rooms.size(), hallways.size());
 	}
-	
+
 	private boolean hallFill(int locationX, int locationY)
 	{
 		// Reject - current cell is a wall, OOB, or already visited --> return false
@@ -646,7 +647,7 @@ public class GridMap
 	public double evaluateFitness()
 	{
 		
-		
+		System.out.printf("Base Fitness\n");
 		
 		fitness = 0;
 		Cell startCell = getRandomHallway();
@@ -682,19 +683,19 @@ public class GridMap
 		// Walls should be fairly abundant
 
 		
-		double fitness = 0;
+		double fit = 0;
 
 		if(walls.size() < 50)
 		{
-			fitness -= walls.size();
+			fit -= walls.size();
 		}
 		else if(walls.size() > 50 && walls.size() < 100)
 		{
-			fitness += 20;
+			fit += 20;
 		}
 		else
 		{
-			fitness -= walls.size();
+			fit -= walls.size();
 		}
 
 		// If a wall is surrounded by rooms or all rooms and 1 other wall, thats good
@@ -704,47 +705,47 @@ public class GridMap
 			// surrounded by rooms / surrounded by rooms + 1 or 2 walls / not touching rooms
 			switch(wallInRoom(wall))
 			{
-				case 0: fitness += 15;
+				case 0: fit += 15;
 						break;
 
-				case 1: fitness += 10;
+				case 1: fit += 10;
 						break;
 
-				case 2: fitness -= 2;
+				case 2: fit -= 2;
 			}
 
 		}
 
 
-		return fitness;
+		return fit;
 
 
 	}
 	private double evaluateHallways()
 	{
-		double fitness = 0;
+		double fit = 0;
 		
 		// Caverns should rarely ever have hallways
 		if(hallways.size() == 0 || hallways.size() < 25)
 		{
-			fitness += 20;
+			fit += 20;
 		}
 		else if(hallways.size() > 25 && hallways.size() < 100)
 		{
-			fitness += 10;
+			fit += 10;
 		}
 		else
 		{
-			fitness -= hallways.size();
+			fit -= hallways.size();
 		}
 
 	
 
-		return fitness;
+		return fit;
 	}
 	private double evaluateRooms()
 	{
-		double fitness = 0;
+		double fit = 0;
 		int halfMap = gridHeight * gridWidth / 2;
 		int numRoomCells = 0;
 		int numConnectingRooms;
@@ -766,34 +767,34 @@ public class GridMap
 		int difference = (gridHeight * gridWidth) - numRoomCells;
 		if(difference > halfMap)
 		{
-			fitness += 30;
+			fit += 30;
 		}
 
 
 
-		return fitness;
+		return fit;
 	}
 	private double evaluateDoors()
 	{
 		// Doors shouldn't exist in a cave
 		// The less doors, the better fitness
 		
-		double fitness = 0;
+		double fit = 0;
 		
 		if(doors.size() == 0 || doors.size() < 10)
 		{
-			fitness += 10;
+			fit += 10;
 		}
 		else if(doors.size() > 10 && doors.size() < 25)
 		{
-			fitness += 2;
+			fit += 2;
 		}
 		else
 		{
-			fitness -= doors.size();
+			fit -= doors.size();
 		}
 
-		return fitness;
+		return fit;
 	}
 
 	// -- FITNESS FUNCTION HELPER FUNCTIONS
@@ -1016,7 +1017,7 @@ public class GridMap
 		    ig2.setColor(Color.BLACK);
 		    ig2.fillRect(0, 0, width, height);
 
-		    //drawCells(ig2, width, height, gridWidth, gridHeight);
+		   //drawCells(ig2, width, height, gridWidth, gridHeight);
 		    drawComplete(ig2, width, height, gridWidth, gridHeight);
 
 		    drawGrid(ig2, width / gridWidth, height / gridHeight);
@@ -1058,10 +1059,15 @@ public class GridMap
 					pencil.setColor(Color.BLACK);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
+				else if(allTiles[i][j].getCellType() == Globals.TEST_MUTATION)
+				{
+					pencil.setColor(new Color(255, 0, 0));
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
 				else
 				{
-					pencil.setColor(new Color(105, 105, 105));
-					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+					pencil.setColor(new Color(120, 120, 120));
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));	
 				}
 			}
 		}

@@ -164,7 +164,7 @@ public class GridMapCavern extends GridMap
 		Vector<Room> rooms = getRoomsVector();
 		Vector<Hallway> hallways = getHallwaysVector();
 
-		System.out.printf("parentHall size: %d parentRooms size: %d \n", getHallwaysVector().size(), getRoomsVector().size());
+		//System.out.printf("parentHall size: %d parentRooms size: %d \n", getHallwaysVector().size(), getRoomsVector().size());
 
 		// Iterate over each hallway to check if mutation occurs
 		for(Hallway mutateHall : hallways)
@@ -173,10 +173,9 @@ public class GridMapCavern extends GridMap
 			{
 				// Choose hallway to mutatte
 				//Hallway mutateHall = hallways.get(getRand().nextInt(hallways.size()));
+				int mutationSelection = getRand().nextInt(7);
 
-				int mutationSelection = getRand().nextInt(3);
-
-				/*if(mutationSelection == 1)
+				if(mutationSelection == 7)
 				{
 					// Fill Mutation
 					Cell origin;
@@ -199,8 +198,8 @@ public class GridMapCavern extends GridMap
 					}
 					
 					
-				}*/
-				if(mutationSelection == 0)
+				}
+				if(mutationSelection == 1 || mutationSelection == 0 || mutationSelection == 4)
 				{
 					// Burst Mutation
 					//System.out.printf("Hall Burst\n");
@@ -209,20 +208,25 @@ public class GridMapCavern extends GridMap
 					Cell origin = mutateHall.getRandomCell();
 					int width = -2;
 					int height = -2;
-					for(int i = width; i < Math.abs(width); i++)
+					for(int x = 0; x < 3; x ++)
 					{
-						for(int j = height; j < Math.abs(height); j++)
+						origin = mutateHall.getRandomCell();
+						for(int i = width; i < Math.abs(width); i++)
 						{
-							if(!outOfBounds(origin.getX() + i, origin.getY() + j))
+							for(int j = height; j < Math.abs(height); j++)
 							{
-								getCell(origin.getX() + i, origin.getY() + j).changeCellType(Globals.HALLWAY);
-								getCell(origin.getX() + i, origin.getY() + j).setHallwayAssignment(origin.getHallwayAssignment());
-								mutateHall.add(getCell(origin.getX() + i, origin.getY() + j));
+								if(!outOfBounds(origin.getX() + i, origin.getY() + j))
+								{
+									getCell(origin.getX() + i, origin.getY() + j).changeCellType(Globals.HALLWAY);
+									getCell(origin.getX() + i, origin.getY() + j).setHallwayAssignment(origin.getHallwayAssignment());
+									mutateHall.add(getCell(origin.getX() + i, origin.getY() + j));
+								}
 							}
 						}
 					}
+					
 				}
-				else if(mutationSelection == 1)
+				else if(mutationSelection == 8)
 				{
 					// Iterate each cell in the vector
 					// Chance to mutate it
@@ -245,7 +249,7 @@ public class GridMapCavern extends GridMap
 						}
 					}
 				}
-				else if(mutationSelection == 2)
+				else if(mutationSelection == 3 || mutationSelection == 2 || mutationSelection == 5 || mutationSelection == 6)
 				{
 					// Reroute towards random room
 					//System.out.printf("Reroute Hall");
@@ -322,6 +326,41 @@ public class GridMapCavern extends GridMap
 					}
 
 				}
+				/*else if(mutationSelection == 4)
+				{
+					// Dead end removal
+
+					// Iterate through cells in hallway
+					// If cell is attached to 3 walls, remove and recurse until no more dead end
+					System.out.printf("Dead End Removal\n");
+					int wallCount;
+					ArrayList<Cell> allCells = mutateHall.getCells();
+					//Cell nextCell;
+					
+					for(int i = 0; i < allCells.size(); i++)
+					{
+						wallCount = 0;
+						for(Direction dir : allDir)
+						{
+							if(!outOfBounds(allCells.get(i).getX() + dir.dx, allCells.get(i).getY() + dir.dy) && getCell(allCells.get(i).getX() + dir.dx, allCells.get(i).getY() + dir.dy).getCellType() == Globals.WALL)
+							{
+								wallCount++;
+							}
+							/*else if(!outOfBounds(allCells.get(i).getX() + dir.dx, allCells.get(i).getY() + dir.dy) && getCell(allCells.get(i).getX() + dir.dx, allCells.get(i).getY() + dir.dy).getCellType() == Globals.HALLWAY)
+							{
+								nextCell = getCell(allCells.get(i).getX() + dir.dx, allCells.get(i).getY() + dir.dy);
+							}
+						}
+
+						if(wallCount == 3 || wallCount == 4)
+						{
+							allCells.get(i).setHallwayAssignment(-1);
+							allCells.get(i).changeCellType(Globals.WALL);
+							allCells.remove(allCells.get(i));
+							i = -1;// Remove shifts everything to the left, so reducing variable i makes sure no cells are skipped
+						}
+					}
+				}*/
 
 				
 
@@ -335,9 +374,9 @@ public class GridMapCavern extends GridMap
 			if(getRand().nextDouble() < mutateRate)
 			{
 				//Room mutateRoom = rooms.get(getRand().nextInt(rooms.size()));
-				int mutationSelection = getRand().nextInt(3);
+				int mutationSelection = getRand().nextInt(5);
 
-				if(mutationSelection == 0 || mutationSelection == 1)
+				if(mutationSelection == 0 || mutationSelection == 1 || mutationSelection == 3)
 				{
 					
 					// Room expansion mutation
@@ -377,26 +416,26 @@ public class GridMapCavern extends GridMap
 					Cell carveOrigin = mutateRoom.getRandomCellGeneral();
 
 					//System.out.printf("Selected carve origin (%d, %d)\n", carveOrigin.getX(), carveOrigin.getY());
-					int width = getRand().nextInt(2) + 1;
-					int height = getRand().nextInt(2) + 1;
+					int width = getRand().nextInt(1) + 1;
+					int height = getRand().nextInt(1) + 1;
 
-					outerLoop:
+
+					//carveOrigin = mutateRoom.getRandomCellGeneral();
 					for(int i = carveOrigin.getX() - width; i < carveOrigin.getX() + width; i++)
 					{
 						for(int j = carveOrigin.getY() - height; j < carveOrigin.getY() + height; j++)
 						{
 							if(!outOfBounds(i, j))
 							{
-								getCell(i, j).changeCellType(Globals.TEST_MUTATION);
+								getCell(i, j).changeCellType(Globals.WALL);
 								getCell(i,j).setRoomAssignment(-1);
-								mutateRoom.remove(i, j);
-
-					
-								
+								mutateRoom.remove(i, j);	
 							}
 						}
 					}
 				}
+				
+				
 			}
 		}
 		
@@ -432,9 +471,10 @@ public class GridMapCavern extends GridMap
 	@Override
 	public double evaluateFitness()
 	{
-		System.out.printf("parentHall size: %d parentRooms size: %d \n", getHallwaysVector().size(), getRoomsVector().size());
+		System.out.printf("Cavern Fitness \n");
 
-		double myFit = getFitness();
+		double myFit = 0.0;
+		System.out.printf("got fit: %f \n", myFit);
 
 		// Should be a lot of rooms
 		// Rooms should be large and non-uniform
@@ -442,13 +482,13 @@ public class GridMapCavern extends GridMap
 		{
 			myFit += 1000;
 		}
-		else if(getRoomsVector().size() > 5)
+		else if(getRoomsVector().size() >= 5)
 		{
-			myFit +=40;
+			myFit += 400;
 		}
 		else if(getRoomsVector().size() < 5)
 		{
-			myFit -= 50;
+			myFit -= 500;
 		}
 		myFit += evaluateHallways();
 		myFit += evaluateRooms();
@@ -478,17 +518,21 @@ public class GridMapCavern extends GridMap
 		Vector<Cell> walls = getWallsVector();
 		double fitness = 0;
 
-		if(walls.size() < 50)
+		if(walls.size() < 800)
 		{
-			fitness -= 0;
+			fitness -= 200;
 		}
-		else if(walls.size() > 50 && walls.size() < 300)
+		else if(walls.size() > 1000 )
 		{
-			fitness += 20;
+			fitness += 900;
+		}
+		else if(walls.size() > 2000)
+		{
+			fitness += 500;
 		}
 		else
 		{
-			fitness -= 0;
+			fitness += 100;
 		}
 
 		// If a wall is surrounded by rooms or all rooms and 1 other wall, thats good
@@ -498,10 +542,10 @@ public class GridMapCavern extends GridMap
 			// surrounded by rooms / surrounded by rooms + 1 or 2 walls / not touching rooms
 			switch(wallInRoom(wall))
 			{
-				case 0: fitness += 15;
+				case 0: fitness += 30;
 						break;
 
-				case 1: fitness += 10;
+				case 1: fitness += 30;
 						break;
 
 				case 2: fitness -= 2;
@@ -560,14 +604,33 @@ public class GridMapCavern extends GridMap
 		int hallCount = 0;
 		int wallCount = 0;
 		
+		if(hallways.size() <= 1)
+		{
+			fitness -= 1000;
+		}
+		else if(hallways.size() == rooms.size())
+		{
+			fitness += 800;
+		}
+		else if(hallways.size() - rooms.size() > 0 && hallways.size() - rooms.size() < 4)
+		{
+			fitness += 1500;
+		}
 		for(Hallway hall: hallways)
 		{
+			if(hall.size() > 50)
+			{
+				fitness -= 200;
+			}
 			for(Cell currCell : hall.getCells())
 			{
 				
 				roomCount = 0;
 				hallCount = 0;
 				wallCount = 0;
+
+				// Determine if current cell falls between 2 rooms
+				// The more cells that are between 2 rooms, the higher the fitness
 				if(rooms.size() > 0)
 				{
 					Room r = rooms.get(getRand().nextInt(rooms.size()));
@@ -581,16 +644,16 @@ public class GridMapCavern extends GridMap
 					}
 					
 					// Determine if this cell is between two rooms
-					if((Math.abs(roomOneCell.getX() - currCell.getX()) < 2 && Math.abs(roomTwoCell.getX() - currCell.getX()) < 2) && (Math.abs(roomOneCell.getY() - currCell.getY()) < 2 && Math.abs(roomTwoCell.getY() - currCell.getY()) < 2))
+					if((Math.abs(roomOneCell.getX() - currCell.getX()) < 1 && Math.abs(roomTwoCell.getX() - currCell.getX()) < 1) && (Math.abs(roomOneCell.getY() - currCell.getY()) < 1 && Math.abs(roomTwoCell.getY() - currCell.getY()) < 1))
 					{
 						// Current cell is roughly between the two rooms
-						fitness += 10;
+						fitness += 2;
 					}		
 				}
 				else
 				{
 					// this map doesnt have any rooms somehow, destroy fitness
-					fitness -= 10000;
+					fitness -= 1000000;
 				}
 				
 
@@ -601,7 +664,6 @@ public class GridMapCavern extends GridMap
 				// Check if currCell is a room border
 				// Scan surrounding cells to see if theyre also a hallway
 
-				
 				for(Direction dir: allDir)
 				{
 					if(!outOfBounds(currCell.getX() + dir.dx, currCell.getY() + dir.dy) && getCell(currCell.getX() + dir.dx, currCell.getY() + dir.dy).getCellType() == Globals.ROOM)
@@ -620,13 +682,17 @@ public class GridMapCavern extends GridMap
 
 				if(roomCount == 1 && (hallCount == 3 || hallCount == 2))
 				{
-					fitness += 20;
+					fitness += 50;
 				}
 				else if(hallCount == 4)
 				{
-					fitness += 40;
+					fitness += 60;
 				}
 				else if(wallCount == 4 || wallCount == 3)
+				{
+					fitness -= 200;
+				}
+				else if(wallCount == 2 && hallCount == 2)
 				{
 					fitness -= 50;
 				}
@@ -653,7 +719,7 @@ public class GridMapCavern extends GridMap
 				else if(width <= 4)
 				{
 					// Hopefully width
-					fitness += 30;
+					fitness += 50;
 				}		
 			}
 			else
@@ -661,7 +727,33 @@ public class GridMapCavern extends GridMap
 				System.out.printf("Hallways with size 0??\n");
 			}
 			
+			// Check if the hallway connects 2 rooms together
+			// Check each cell, if it touches a room, get that room number, then check other cells and see if they touch a room with a different room number
+			int firstRoomNum = -1;
+			int secondRoomNum = -1;
+			for(Cell currCell : hall.getCells())
+			{
 
+				for(Direction dir : allDir)
+				{
+					if(!outOfBounds(currCell.getX() + dir.dx, currCell.getY() + dir.dy) && getCell(currCell.getX() + dir.dx, currCell.getY() + dir.dy).getCellType() == Globals.ROOM && firstRoomNum == -1)
+					{
+						firstRoomNum = getCell(currCell.getX() + dir.dx, currCell.getY() + dir.dy).getRoomAssignment();
+					}
+					else if(!outOfBounds(currCell.getX() + dir.dx, currCell.getY() + dir.dy) && getCell(currCell.getX() + dir.dx, currCell.getY() + dir.dy).getCellType() == Globals.ROOM && firstRoomNum != -1)
+					{
+						secondRoomNum = getCell(currCell.getX() + dir.dx, currCell.getY() + dir.dy).getRoomAssignment();
+						break;
+					}
+				}
+
+				if(firstRoomNum != -1 && secondRoomNum != -1 && firstRoomNum != secondRoomNum)
+				{
+					// The hallway must connect atleast 2 rooms
+					fitness += 2000;
+					break;
+				}
+			}
 
 		}
 
@@ -689,6 +781,7 @@ public class GridMapCavern extends GridMap
 			fitness += r.evaluateSize();
 			//fitness += r.evalauteOverlap(rooms);
 			fitness += r.evaluateDistance(rooms);
+			fitness += r.evaluateInnerRoomDivide();
 		}
 		
 		

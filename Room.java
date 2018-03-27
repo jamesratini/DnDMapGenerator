@@ -284,6 +284,13 @@ public class Room
 		
 		return retVal;
 	}
+	public double evaluateInnerRoomDivide()
+	{
+		// In a cavern rooms should have chunks in the middle that divide them
+		double myFit = 0;
+
+		return myFit;
+	}
 	public int evaluateDistance(Vector<Room> rooms)
 	{
 
@@ -294,6 +301,10 @@ public class Room
 		int currRoomCenterX = 0;
 		int currRoomCenterY = 0;
 		int retVal = 0;
+		int currRoomLowX = 100;
+		int currRoomLowY = 100;
+		int currRoomHighX = 0;
+		int currRoomHighY = 0;
 
 		for(Cell c : allCells)
 		{
@@ -310,14 +321,19 @@ public class Room
 				highestY = c.getY();
 		}
 
-		int centerX = highestX - (lowestX / 2);
-		int centerY = highestY - (lowestY / 2);
+		int centerX =  highestX - ((highestX - lowestX) / 2);
+		int centerY =  highestY - ((highestY - lowestY) / 2);
 
 		for(Room room: rooms)
 		{
 			// Determine the distance between the two rooms
 
 			// Compare the 'center' point of each room
+
+			currRoomLowX = 100;
+			currRoomLowY = 100;
+			currRoomHighX = 0;
+			currRoomHighY = 0;
 
 			for(Cell c: room.getCells())
 			{
@@ -333,19 +349,19 @@ public class Room
 				if(c.getY() > highestY)
 					highestY = c.getY();
 			}
-			currRoomCenterX = highestX - (lowestX / 2);
-			currRoomCenterY = highestY - (lowestY / 2);
+			currRoomCenterX =  highestX - ((highestX - lowestX) / 2);
+			currRoomCenterY = highestY - ((highestY - lowestY) / 2);
 
 			if(Math.abs(centerX - currRoomCenterX) > 8 && Math.abs(centerY - currRoomCenterY) > 8)
 			{
 				// Rooms are probably pretty far apart
-				retVal += 50;
+				retVal += 200;
 			}
 			else if(Math.abs(centerX - currRoomCenterX) <= 7 && Math.abs(centerY - currRoomCenterY) <= 7)
 			{
-				retVal += 20;
+				retVal += 50;
 			}
-			else if(Math.abs(centerX - currRoomCenterX) < (highestX - lowestX) / 2|| Math.abs(centerY - currRoomCenterY) < (highestY - lowestY) / 2)
+			else if(Math.abs(centerX - currRoomCenterX) < (highestX - lowestX) / 2 || Math.abs(centerY - currRoomCenterY) < (highestY - lowestY) / 2)
 			{
 				// Rooms must overlap
 				retVal -= 100;

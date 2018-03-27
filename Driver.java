@@ -10,9 +10,9 @@ public class Driver
 
 		// Must be included args
 		int mapType = 1; // 1 = cavern
-		int numGens = 200;
+		int numGens = 100;
 
-		Population pop = new Population(15, x, y, 0.10);
+		Population pop = new Population(20, x, y, 0.10);
 		pop.initialize();
 
 		for(GridMap map : pop.getMaps())
