@@ -59,6 +59,17 @@ public class Room
 			}
 		}
 	}
+	public void removeNonRooms()
+	{
+		for(int i = 0; i < allCells.size(); i++)
+		{
+			if(allCells.get(i).getCellType() != Globals.ROOM)
+			{
+				allCells.remove(i);
+				i--;
+			}
+		}
+	}
 	public Cell getCenter()
 	{
 		int lowestX = 100;

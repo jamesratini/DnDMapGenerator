@@ -10,9 +10,9 @@ public class Driver
 
 		// Must be included args
 		int mapType = 1; // 1 = cavern
-		int numGens = 100;
+		int numGens = 200;
 
-		Population pop = new Population(20, x, y, 0.10);
+		Population pop = new Population(20, x, y, 0.30);
 		pop.initialize();
 
 		for(GridMap map : pop.getMaps())
@@ -21,7 +21,6 @@ public class Driver
 			// Depending on which map the user selects, the fitness function changes
 			//AQ.add(() -> {
 				 map.evaluateFitness();
-				 System.out.printf("Fitness: %f\n", map.getFitness());
 			//});	
 		}
 		
@@ -46,8 +45,9 @@ public class Driver
 				// Evaluate each maps fitness then draw the map
 				// Depending on which map the user selects, the fitness function changes
 				//AQ.add(() -> {
+				//System.out.printf("evaluating map\n");
 					 map.evaluateFitness();
-					  System.out.printf("Fitness: %f\n", map.getFitness());
+					  //System.out.printf("Fitness: %f\n", map.getFitness());
 				//});	
 			}
 			

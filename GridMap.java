@@ -1017,7 +1017,7 @@ public class GridMap
 		    ig2.setColor(Color.BLACK);
 		    ig2.fillRect(0, 0, width, height);
 
-		   //drawCells(ig2, width, height, gridWidth, gridHeight);
+		    //drawCells(ig2, width, height, gridWidth, gridHeight);
 		    drawComplete(ig2, width, height, gridWidth, gridHeight);
 
 		    drawGrid(ig2, width / gridWidth, height / gridHeight);
@@ -1097,7 +1097,7 @@ public class GridMap
 					pencil.setColor(Color.BLACK);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
-				else if(allTiles[i][j].getCellType() == Globals.ROOM)
+				else if(allTiles[i][j].getCellType() == Globals.ROOM )
 				{
 					try
 					{
@@ -1111,7 +1111,7 @@ public class GridMap
 					}
 					
 				}
-				else if( allTiles[i][j].getCellType() == Globals.DOOR)
+				else if( allTiles[i][j].getCellType() == Globals.DOOR )
 				{
 					//pencil.setColor(Color.WHITE);
 					pencil.setColor(Color.GRAY);
@@ -1123,6 +1123,7 @@ public class GridMap
 					pencil.setColor(Color.PINK);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
+
 				
 				else
 				{
@@ -1134,21 +1135,7 @@ public class GridMap
 			
 			}
 		}
-		for(Room r : rooms)
-		{
-			// testing room assignment
-			for(Cell c: r.getCells())
-			{
-				if(c.getCellType() == Globals.ROOM)
-				{
-					pencil.setColor(new Color(0,255,0));
-					pencil.fillRect(c.getX() * (imgW / gridWidth), c.getY() * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));	
-				}
-				
-
-			}
-
-		}
+		
 
 
 	}
