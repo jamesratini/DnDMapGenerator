@@ -1017,8 +1017,8 @@ public class GridMap
 		    ig2.setColor(Color.BLACK);
 		    ig2.fillRect(0, 0, width, height);
 
-		    //drawCells(ig2, width, height, gridWidth, gridHeight);
-		    drawComplete(ig2, width, height, gridWidth, gridHeight);
+		    drawCells(ig2, width, height, gridWidth, gridHeight);
+		    //drawComplete(ig2, width, height, gridWidth, gridHeight);
 
 		    drawGrid(ig2, width / gridWidth, height / gridHeight);
 

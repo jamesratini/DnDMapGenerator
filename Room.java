@@ -260,24 +260,24 @@ public class Room
 		if(diff > 3)
 		{
 			// Pretty uniform
-			retVal += 150;
+			retVal += 200;
 		}
 		else if(diff < 6)
 		{
-			retVal += 50;
+			retVal += 100;
 		}
 
 		if(width > 15)
 		{
-			retVal -= 150;
+			retVal -= 200;
 		}
 		else if(width < 15 && width > 7)
 		{
-			retVal += 50;
+			retVal += 150;
 		}
 		else if(width < 7 && width > 5)
 		{
-			retVal += 25;
+			retVal += 100;
 		}
 
 		if(height > 15)
@@ -330,6 +330,8 @@ public class Room
 
 			if(c.getY() > highestY)
 				highestY = c.getY();
+
+
 		}
 
 		int centerX =  highestX - ((highestX - lowestX) / 2);
@@ -340,7 +342,7 @@ public class Room
 			// Determine the distance between the two rooms
 
 			// Compare the 'center' point of each room
-
+			
 			currRoomLowX = 100;
 			currRoomLowY = 100;
 			currRoomHighX = 0;
@@ -349,32 +351,27 @@ public class Room
 			for(Cell c: room.getCells())
 			{
 				if(c.getX() < lowestX)
-				lowestX = c.getX();
+					currRoomLowX = c.getX();
 
 				if(c.getX() > highestX)
-					highestX = c.getX();
+					currRoomHighX = c.getX();
 
 				if(c.getY() < lowestY)
-					lowestY = c.getY();
+					currRoomLowY = c.getY();
 
 				if(c.getY() > highestY)
-					highestY = c.getY();
+					currRoomHighY = c.getY();
 			}
 			currRoomCenterX =  highestX - ((highestX - lowestX) / 2);
 			currRoomCenterY = highestY - ((highestY - lowestY) / 2);
 
-			if(Math.abs(centerX - currRoomCenterX) > 8 && Math.abs(centerY - currRoomCenterY) > 8)
+			if(Math.abs(centerX - currRoomCenterX) > 9 || Math.abs(centerY - currRoomCenterY) > 9)
 			{
 				// Rooms are probably pretty far apart
-				retVal += 200;
+				retVal += 300;
 			}
-			else if(Math.abs(centerX - currRoomCenterX) <= 7 && Math.abs(centerY - currRoomCenterY) <= 7)
+			else
 			{
-				retVal += 50;
-			}
-			else if(Math.abs(centerX - currRoomCenterX) < (highestX - lowestX) / 2 || Math.abs(centerY - currRoomCenterY) < (highestY - lowestY) / 2)
-			{
-				// Rooms must overlap
 				retVal -= 100;
 			}
 

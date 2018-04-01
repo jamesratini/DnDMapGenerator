@@ -153,8 +153,13 @@ public class Population
 		// Fill new population with this populations children
 		for(int i = elitismIndex; i < allMaps.size(); i++)
 		{
+			
 			newPop.addGridMap(produceChildMap());
+			
+			
 		}
+
+		
 		
 
 		return newPop;
