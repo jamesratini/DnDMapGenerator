@@ -96,6 +96,7 @@ public class Population
 		for(int i = 0; i < allMaps.size(); i++)
 		{
 			probabilities[i] = prevProbability + (allMaps.get(i).getFitness() / fitnessSum);
+			//System.out.printf("prob: %f \n", probabilities[i]);
 			prevProbability = probabilities[i];
 		}
 

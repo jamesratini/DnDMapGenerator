@@ -10,11 +10,12 @@ public class Driver
 
 		// Must be included args
 		int mapType = 1; // 1 = cavern
-		int numGens = 200;
-
-		Population pop = new Population(20, x, y, 0.50);
+		int numGens = 500;
+		
+		Population pop = new Population(50, x, y, 0.30);
 		pop.initialize();
 
+		GridMap highestFit = pop.getGridMap(0);
 		for(GridMap map : pop.getMaps())
 		{
 			// Evaluate each maps fitness then draw the map
@@ -26,17 +27,18 @@ public class Driver
 		
 			
 
-		for(int i = 0; i < pop.getPopSize(); i++)
+		/*for(int i = 0; i < pop.getPopSize(); i++)
 		{
 			pop.getGridMap(i).Draw(Integer.toString(i + 1));
-		}
+		}*/
 		//AQ.finish();
 	
 
 		// Test hallways
-		for(int j = 0; j < numGens; j++)
+		int j =0;
+		while(highestFit.getFitness() < 100000.00)
 		{
-			System.out.printf("Starting generation %d out of %d \n", j, numGens);
+			System.out.printf("Starting generation %d\n", j);
 			
 			pop = pop.generateNextGen(5);
 
@@ -44,22 +46,28 @@ public class Driver
 			{
 				// Evaluate each maps fitness then draw the map
 				// Depending on which map the user selects, the fitness function changes
-				AQ.add(() -> {
+				//AQ.add(() -> {
 				//System.out.printf("evaluating map\n");
-					 map.evaluateFitness();
-					  //System.out.printf("Fitness: %f\n", map.getFitness());
-				});	
+					map.evaluateFitness();
+					//System.out.printf("Fitness: %f\n", map.getFitness());
+				//});	
+				if(map.getFitness() > highestFit.getFitness())
+				{
+
+					highestFit = map;
+				}
 			}
 			
 
-			for(int i = 0; i < pop.getPopSize(); i++)
+			/*for(int i = 0; i < pop.getPopSize(); i++)
 			{
 				pop.getGridMap(i).Draw(Integer.toString(((j + 1) * pop.getPopSize() + 1) + i));
-			}
+			}*/
+			highestFit.Draw(Integer.toString(j) + " highestFit " + Double.toString(highestFit.getFitness()));
 
-			AQ.finish();
+			//AQ.finish();
 
-	
+			j++;
 			
 		}
 	}
