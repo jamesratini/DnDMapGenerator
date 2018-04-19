@@ -12,7 +12,7 @@ public class Driver
 		int mapType = 1; // 1 = cavern
 		int numGens = 500;
 		
-		Population pop = new Population(50, x, y, 0.30);
+		Population pop = new Population(10, x, y, 0.03);
 		pop.initialize();
 
 		GridMap highestFit = pop.getGridMap(0);
@@ -27,10 +27,10 @@ public class Driver
 		
 			
 
-		/*for(int i = 0; i < pop.getPopSize(); i++)
+		for(int i = 0; i < pop.getPopSize(); i++)
 		{
 			pop.getGridMap(i).Draw(Integer.toString(i + 1));
-		}*/
+		}
 		//AQ.finish();
 	
 
@@ -58,17 +58,19 @@ public class Driver
 				}
 			}
 			
-
-			/*for(int i = 0; i < pop.getPopSize(); i++)
+			for(int i = 0; i < pop.getPopSize(); i++)
 			{
-				pop.getGridMap(i).Draw(Integer.toString(((j + 1) * pop.getPopSize() + 1) + i));
-			}*/
-			highestFit.Draw(Integer.toString(j) + " highestFit " + Double.toString(highestFit.getFitness()));
-
+				pop.getGridMap(i).Draw(Integer.toString(j + 1) + Integer.toString(i) + " - " + pop.getGridMap(i).getFitness() + " - " + pop.getGridMap(i).getHallwaysVector().size());
+			}
+			
+			//pop.drawHighestFit(j);
+			//highestFit.Draw(Integer.toString(j) + " - " + highestFit.getFitness() + " - " + highestFit.getHallwaysVector().size() + " - " + highestFit.getRoomsVector().size());
+			//highestFit = 0;
 			//AQ.finish();
 
 			j++;
 			
 		}
 	}
+
 }

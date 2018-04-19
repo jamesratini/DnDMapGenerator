@@ -41,10 +41,19 @@ public class Hallway
 	}
 	public void purge()
 	{
+		for(int i = 0; i < allCells.size(); i++)
+		{
+			if((allCells.get(i).getCellType() != Globals.HALLWAY && allCells.get(i).getCellType() != Globals.TEST_MUTATION) && allCells.get(i).getHallwayAssignment() != getNumber())
+			{
+				allCells.remove(allCells.get(i));
+				i--;
+			}
+		}
+	}
+	public void erase()
+	{
 		while(allCells.size() > 0)
 		{
-			allCells.get(0).changeCellType(Globals.WALL);
-			allCells.get(0).setHallwayAssignment(-1);
 			allCells.remove(allCells.get(0));
 		}
 	}

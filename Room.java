@@ -140,10 +140,19 @@ public class Room
 	}
 	public void purge()
 	{
+		for(int i = 0; i < allCells.size(); i++)
+		{
+			if(allCells.get(i).getCellType() != Globals.ROOM && allCells.get(i).getRoomAssignment() != getNumber())
+			{
+				allCells.remove(allCells.get(i));
+				i--;
+			}
+		}
+	}
+	public void erase()
+	{
 		while(allCells.size() > 0)
 		{
-			allCells.get(0).changeCellType(Globals.WALL);
-			allCells.get(0).setRoomAssignment(-1);
 			allCells.remove(allCells.get(0));
 		}
 	}

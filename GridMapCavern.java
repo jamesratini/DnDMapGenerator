@@ -68,10 +68,6 @@ public class GridMapCavern extends GridMap
 				break;
 			}
 		
-			/*if(getRand().nextDouble() < mutationRate)
-			{
-				parentHall = mutateHall(parentHall);
-			}*/
 
 			// allTiles cells are all null at this point
 			// Loop through parents room and assign corresponding cells to ROOM
@@ -146,6 +142,7 @@ public class GridMapCavern extends GridMap
 
 		fillVectors();
 		mutate(mutationRate);
+		//fillVectors();
 
 		
 
@@ -164,356 +161,261 @@ public class GridMapCavern extends GridMap
 	{
 		Vector<Room> rooms = getRoomsVector();
 		Vector<Hallway> hallways = getHallwaysVector();
+		boolean successfulMutation = false;
+		
+		int mutationSelection = 0;
 		
 		// Hallway mutation
 		for(Hallway mutateHall : hallways)
 		{
-			if(getRand().nextDouble() < mutateRate && hallways.size() != 0)
+			
+			ArrayList<Cell> hallCells = mutateHall.getCells();
+			for(int i = 0; i < hallCells.size(); i++)
 			{
-				// Choose hallway to mutate
-				
-				 
-				int mutationSelection = getRand().nextInt(3);
 
-				/*if(mutationSelection == 7)
+				if(getRand().nextDouble() < mutationRate)
 				{
-					// Fill Mutation
-					Cell origin;
-					System.out.printf("Hall Fill\n");
-					// Choose a starting cell randomly in the hallway
-					origin = mutateHall.getRandomCell();
-					
-
-					// Check all directions
-					// If x or y + 1 == wall/blocked but x or y + 2 is a hallway, set x or y + 1 to a hallway
-					for(Direction dir : allDir)
+					successfulMutation = false;
+					while(successfulMutation == false)
 					{
-						while((!outOfBounds(origin.getX() + dir.dx, origin.getY() + dir.dy) && !outOfBounds(origin.getX() + dir.dx * 2, origin.getY() + dir.dy *2)) && (getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).getCellType() == Globals.WALL || getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).getCellType() == Globals.BLOCKED) && getCell(origin.getX() + dir.dx * 2, origin.getY() + dir.dy *2).getCellType() == Globals.HALLWAY)
-						{
-							getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).changeCellType(Globals.HALLWAY);
-							getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).setHallwayAssignment(origin.getHallwayAssignment());
-							mutateHall.add(getCell(origin.getX() + dir.dx, origin.getY() + dir.dy));
-							origin = getCell(origin.getX() + dir.dx * 2, origin.getY() + dir.dy * 2);
-						}
-					}
-					
-					
-				}*/
-				if(mutationSelection == 0)// || mutationSelection == 1 || mutationSelection == 2)
-				{
-					// Burst Mutation
-					//System.out.printf("Hall Burst\n");
+						mutationSelection = getRand().nextInt(5);
 
-					// Choose origin cell and set all surrounding cells to hallways no matter what
-					Cell origin = mutateHall.getRandomCell();
-					int width = getRand().nextInt(2);
-					int height = getRand().nextInt(2);
-					//for(int x = 0; x < 2; x ++)
-					//{
-						origin = mutateHall.getRandomCell();
-						for(int i = 0 - width; i < width; i++)
+						// Reroute around
+						if(mutationSelection == 0)
 						{
-							for(int j = 0 - height; j <height; j++)
+							int originX = hallCells.get(i).getX();
+							int originY = hallCells.get(i).getY();
+							Direction randDir = Direction.randomDir();
+							if(!outOfBounds(originX + (randDir.dx * 2), originY + (randDir.dy * 2)) )
 							{
-								if(!outOfBounds(origin.getX() + i, origin.getY() + j))
+								getCell(originX + (randDir.dx * 2), originY + (randDir.dy * 2)).changeCellType(Globals.HALLWAY);
+								getCell(originX + (randDir.dx * 2), originY + (randDir.dy * 2)).setHallwayAssignment(mutateHall.getNumber());
+								mutateHall.add(getCell(originX + (randDir.dx * 2), originY + (randDir.dy * 2)));
+							}
+							
+
+							if(randDir.getOrdinal() % 2 == 0 && !outOfBounds(originX - 1, originX + 1) && !outOfBounds(originX + (randDir.dx * 2), originY + (randDir.dy * 2)))
+							{
+								getCell(originX - 1, originY + (randDir.dy * 2)).changeCellType(Globals.HALLWAY);
+								getCell(originX + 1, originY + (randDir.dy * 2)).changeCellType(Globals.HALLWAY);
+								getCell(originX - 1, originY + randDir.dy).changeCellType(Globals.HALLWAY);
+								getCell(originX + 1, originY + randDir.dy).changeCellType(Globals.HALLWAY);
+
+								getCell(originX - 1, originY + (randDir.dy * 2)).setHallwayAssignment(mutateHall.getNumber());
+								getCell(originX + 1, originY + (randDir.dy * 2)).setHallwayAssignment(mutateHall.getNumber());
+								getCell(originX - 1, originY + randDir.dy).setHallwayAssignment(mutateHall.getNumber());
+								getCell(originX + 1, originY + randDir.dy).setHallwayAssignment(mutateHall.getNumber());
+
+								mutateHall.add(getCell(originX - 1, originY + (randDir.dy * 2)));
+								mutateHall.add(getCell(originX + 1, originY + (randDir.dy * 2)));
+								mutateHall.add(getCell(originX - 1, originY + randDir.dy));
+								mutateHall.add(getCell(originX + 1, originY + randDir.dy));
+
+								getCell(originX, originY).changeCellType(Globals.WALL);
+								getCell(originX, originY).setHallwayAssignment(-1);
+								
+								
+							}
+							else if(randDir.getOrdinal() % 2 != 0 && !outOfBounds(originY - 1, originY + 1) && !outOfBounds(originX + (randDir.dx * 2), originY + (randDir.dy * 2)))
+							{
+
+								getCell(originX + (randDir.dx * 2), originY - 1).changeCellType(Globals.HALLWAY);
+								getCell(originX + (randDir.dx * 2), originY + 1).changeCellType(Globals.HALLWAY);
+								getCell(originX + randDir.dx, originY - 1).changeCellType(Globals.HALLWAY);
+								getCell(originX + randDir.dx, originY + 1).changeCellType(Globals.HALLWAY);
+
+								getCell(originX + (randDir.dx * 2), originY - 1).setHallwayAssignment(mutateHall.getNumber());
+								getCell(originX + (randDir.dx * 2), originY + 1).setHallwayAssignment(mutateHall.getNumber());
+								getCell(originX + randDir.dx, originY - 1).setHallwayAssignment(mutateHall.getNumber());
+								getCell(originX + randDir.dx, originY + 1).setHallwayAssignment(mutateHall.getNumber());
+
+								mutateHall.add(getCell(originX + (randDir.dx * 2), originY - 1));
+								mutateHall.add(getCell(originX + (randDir.dx * 2), originY + 1));
+								mutateHall.add(getCell(originX + randDir.dx, originY - 1));
+								mutateHall.add(getCell(originX + randDir.dx, originY + 1));
+
+							}
+
+							successfulMutation = true;
+						}
+						// Add Neighbor
+						else if(mutationSelection == 1)
+						{
+							
+							Direction randDir = Direction.randomDir();
+							Cell currentCell = getCell(hallCells.get(i).getX(), hallCells.get(i).getY());
+							int count = 0;
+							
+							if(!outOfBounds(currentCell.getX() + randDir.dx, currentCell.getY() + randDir.dy))
+							{
+								getCell(currentCell.getX() + randDir.dx, currentCell.getY() + randDir.dy).changeCellType(Globals.HALLWAY);
+								getCell(currentCell.getX() + randDir.dx, currentCell.getY() + randDir.dy).setHallwayAssignment(mutateHall.getNumber());
+								mutateHall.add(getCell(currentCell.getX() + randDir.dx, currentCell.getY() + randDir.dy));
+							}
+
+							successfulMutation = true;
+						}
+						// Delete
+						else if(mutationSelection == 2)
+						{
+							
+							Cell currCell = hallCells.get(i);
+							getCell(currCell.getX(), currCell.getY()).changeCellType(Globals.WALL);
+							getCell(currCell.getX(), currCell.getY()).setHallwayAssignment(-1);
+							hallCells.remove(currCell);
+
+							successfulMutation = true;
+
+						}
+						//Context aware
+						// Route To Room
+						else if(mutationSelection == 3)
+						{
+							
+							Cell origin = hallCells.get(i);
+
+							for(Direction dir: allDir)
+							{
+								if(!outOfBounds(origin.getX() + (dir.dx * 2), origin.getY() + (dir.dy * 2)) && getCell(origin.getX() + (dir.dx * 2), origin.getY() + (dir.dy * 2)).getCellType() == Globals.ROOM && getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).getCellType() == Globals.WALL )
 								{
-									getCell(origin.getX() + i, origin.getY() + j).changeCellType(Globals.HALLWAY);
-									getCell(origin.getX() + i, origin.getY() + j).setHallwayAssignment(origin.getHallwayAssignment());
-									mutateHall.add(getCell(origin.getX() + i, origin.getY() + j));
+									getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).changeCellType(Globals.HALLWAY);
+									getCell(origin.getX(), origin.getY()).changeCellType(Globals.HALLWAY);
+									getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).setHallwayAssignment(mutateHall.getNumber());
+									hallCells.add(getCell(origin.getX() + dir.dx, origin.getY() + dir.dy));
+									successfulMutation = true;
+								}
+							}
+
+						}
+						// Extension
+						else if(mutationSelection == 4)
+						{
+							if(mutateHall.size() < 10)
+							{
+								int extensionLength = getRand().nextInt(10);
+								Direction dir = Direction.randomDir();
+								Cell origin = hallCells.get(i);
+
+								for(int j = 0; j < extensionLength; j++)
+								{
+									if(!outOfBounds(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)) && getCell(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)).getCellType() == Globals.WALL)
+									{
+										getCell(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)).changeCellType(Globals.HALLWAY);
+										getCell(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)).setHallwayAssignment(mutateHall.getNumber());
+										hallCells.add(getCell(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)));
+									}
+									
 								}
 							}
 						}
-					//}
+					}
 					
 				}
-				else if(mutationSelection == 4 )
-				{
-					// Iterate each cell in the vector
-					// Chance to mutate it
-					//System.out.printf("Hall Standard Mutation\n");
-					ArrayList<Cell> cells = mutateHall.getCells();
-					for(int i = 0; i < cells.size(); i++)
-					{
-
-						
-						if(getRand().nextDouble() < 0.20)
-						{
-
-						
-							getCell(cells.get(i).getX(), cells.get(i).getY()).changeCellType(Globals.WALL);
-							getCell(cells.get(i).getX(), cells.get(i).getY()).setHallwayAssignment(-1);
-							cells.remove(cells.get(i));
-
-							// Accounting for the fact .remove shifts to the left
-							i--;
-						}
-					}
-				}
-				else if(mutationSelection == 1 || mutationSelection == 2)// || mutationSelection == 4 || mutationSelection == 5)
-				{
-					// Reroute towards random room
-					//System.out.printf("Reroute Hall");
-
-					// Choose a random room
-					Room chosenRoom = rooms.get(getRand().nextInt(rooms.size()));
-					Cell roomBorder = chosenRoom.chooseBorderCell();
-					Cell hallStart = mutateHall.getRandomCell();
-
-					int xDiff = roomBorder.getX() - hallStart.getX();
-					int yDiff = roomBorder.getY() - hallStart.getY();
-
-					ArrayList<Cell> hallCells = mutateHall.getCells();
-
-					// Remove all cells from the hall except starting cell
-					if(getRand().nextInt(2) == 0)
-					{
-						while(hallCells.size() > 0)
-						{
-							getCell(hallCells.get(0).getX(), hallCells.get(0).getY()).changeCellType(Globals.WALL);
-							getCell(hallCells.get(0).getX(), hallCells.get(0).getY()).setHallwayAssignment(-1);
-							hallCells.remove(hallCells.get(0));
-						
-						}
-					}
-					
-
-					// Start from hallStart and create a hallway to the room
-					Direction xDir;
-					Direction yDir;
-					if(xDiff <= 0)
-					{
-						xDir = Direction.WEST;
-					}
-					else
-					{
-						xDir = Direction.EAST;
-					}
-
-					if(yDiff <= 0)
-					{
-						yDir = Direction.NORTH;
-					}
-					else
-					{
-						yDir = Direction.SOUTH;
-					}
-
-					int crossSection = (int)Math.sqrt((xDiff * xDiff) + (yDiff * yDiff));
-					int xMove = 0;
-					int yMove = 0;
-					Cell currCell;// = getCell(hallStart.getX() + (xDir.dx * xDiff), hallStart.getY() + (yDir.dy * yDiff));;
-					for(int i = 0; i < crossSection; i++)
-					{
-						if(!outOfBounds(hallStart.getX() + ((xDir.dx *2) + xDiff), hallStart.getY() + ((yDir.dy * 2) + yDiff)) && getCell(hallStart.getX() + (xDir.dx + xDiff), hallStart.getY() + (yDir.dy + yDiff)).getCellType() != Globals.ROOM && getCell(hallStart.getX() + (xDir.dx + xDiff), hallStart.getY() + (yDir.dy + yDiff)).getCellType() != Globals.HALLWAY)
-						{
-							currCell = getCell(hallStart.getX() + (xDir.dx + xDiff), hallStart.getY() + (yDir.dy + yDiff));
-
-							if(xDiff != 0)
-							{
-								getCell(currCell.getX() + xDir.dx, currCell.getY() + xDir.dy).changeCellType(Globals.HALLWAY);
-								getCell(currCell.getX() + xDir.dx, currCell.getY() + xDir.dy).setHallwayAssignment(mutateHall.getNumber());
-								mutateHall.add(getCell(currCell.getX() + xDir.dx, currCell.getY() + xDir.dy));
-							}
-
-
-							if(yDiff != 0)
-							{
-								getCell(currCell.getX() + yDir.dx, currCell.getY() + yDir.dy).changeCellType(Globals.HALLWAY);
-								getCell(currCell.getX() + yDir.dx, currCell.getY() + yDir.dy).setHallwayAssignment(mutateHall.getNumber());
-								mutateHall.add(getCell(currCell.getX() + yDir.dx, currCell.getY() + yDir.dy));
-								
-							}
-							
-
-							
-							getCell(currCell.getX(), currCell.getY()).setHallwayAssignment(mutateHall.getNumber());
-							getCell(currCell.getX(), currCell.getY()).changeCellType(Globals.HALLWAY);
-							
-							
-							mutateHall.add(getCell(currCell.getX(), currCell.getY()));
-
-							//currCell = getCell(hallStart.getX() + (xDir.dx * xDiff), hallStart.getY() + (yDir.dy * yDiff));
-							
-
-						}
-						else if(!outOfBounds(hallStart.getX() + ((xDir.dx) + xDiff), hallStart.getY() + ((yDir.dy) + yDiff)) && getCell(hallStart.getX() + (xDir.dx + xDiff), hallStart.getY() + (yDir.dy + yDiff)).getCellType() == Globals.HALLWAY && getCell(hallStart.getX() + (xDir.dx + xDiff), hallStart.getY() + (yDir.dy + yDiff)).getHallwayAssignment() != hallStart.getHallwayAssignment())
-						{
-							// If this hallway collides with another, stop all together
-							break;
-						}
-						xDiff = xDiff != 0 ?  (xDiff < 0 ? xDiff + 1 : xDiff - 1) : xDiff;
-						yDiff = yDiff != 0 ?  (yDiff < 0 ? yDiff + 1 : yDiff - 1) : yDiff;
-						
-						
-					}
-
-					
-
-				}
-				/*else if(mutationSelection == 4)
-				{
-					// Dead end removal
-
-					// Iterate through cells in hallway
-					// If cell is attached to 3 walls, remove and recurse until no more dead end
-					System.out.printf("Dead End Removal\n");
-					int wallCount;
-					ArrayList<Cell> allCells = mutateHall.getCells();
-					//Cell nextCell;
-					
-					for(int i = 0; i < allCells.size(); i++)
-					{
-						wallCount = 0;
-						for(Direction dir : allDir)
-						{
-							if(!outOfBounds(allCells.get(i).getX() + dir.dx, allCells.get(i).getY() + dir.dy) && getCell(allCells.get(i).getX() + dir.dx, allCells.get(i).getY() + dir.dy).getCellType() == Globals.WALL)
-							{
-								wallCount++;
-							}
-							/*else if(!outOfBounds(allCells.get(i).getX() + dir.dx, allCells.get(i).getY() + dir.dy) && getCell(allCells.get(i).getX() + dir.dx, allCells.get(i).getY() + dir.dy).getCellType() == Globals.HALLWAY)
-							{
-								nextCell = getCell(allCells.get(i).getX() + dir.dx, allCells.get(i).getY() + dir.dy);
-							}
-						}
-
-						if(wallCount == 3 || wallCount == 4)
-						{
-							allCells.get(i).setHallwayAssignment(-1);
-							allCells.get(i).changeCellType(Globals.WALL);
-							allCells.remove(allCells.get(i));
-							i = -1;// Remove shifts everything to the left, so reducing variable i makes sure no cells are skipped
-						}
-					}
-				}*/
-
-				
-
 			}
 		}
-		
 
-		
-		
+
 		// Room mutation
+		//successfulMutation = false;
+
 		for(Room mutateRoom : rooms)
 		{
-			if(getRand().nextDouble() < mutateRate && rooms.size() != 0)
+			
+			ArrayList<Cell> roomCells = mutateRoom.getCells();
+			for(int i = 0; i < roomCells.size(); i++)
 			{
-				
-				int mutationSelection = getRand().nextInt(4);
-
-				// Room Expansion
-				if(mutationSelection == 0 || mutationSelection == 1)
+				if(getRand().nextDouble() < mutationRate )
 				{
-					
-					// Room expansion mutation
-					//System.out.printf("Room Expansion\n");
-					// Choose center cell
-					Cell c = mutateRoom.chooseBorderCell();
-					
-					// Define the area we will be expanding
-					int width = getRand().nextInt(4) + 1;
-					int height = getRand().nextInt(4) + 1;
-
-					for(int i = c.getX() - width; i < c.getX() + width; i ++)
+					successfulMutation = false;
+					while(successfulMutation == false)
 					{
-						for(int j = c.getY() - height; j < c.getY() + height; j++)
+						mutationSelection = getRand().nextInt(3);
+						
+
+						// Change cell type
+						if(mutationSelection == 0)
 						{
-							// For each cell within the expansion range
-							// Check if the cell would be out of bounds, if false - change to a room;
 
-							if(!outOfBounds(i, j))
-							{
-								getCell(i, j).changeCellType(Globals.ROOM);
-								getCell(i, j).setRoomAssignment(c.getRoomAssignment());
-								mutateRoom.add(getCell(i, j));
-
-								
-							} 
-
+							Cell c = roomCells.get(i);
+							getCell(c.getX(), c.getY()).changeCellType(Globals.WALL);
+							getCell(c.getX(), c.getY()).setRoomAssignment(-1);
+							successfulMutation = true;
+						
 						}
-					}
 
-				}
-				// Room Carving
-				else if( mutationSelection == 2 || mutationSelection == 3)
-				{
-					
-				
-					// Choose random room tile and select carve zone - 
-					Cell carveStart = mutateRoom.getRandomCellGeneral();
-
-					
-					int width = getRand().nextInt(2) + 1;
-					int height = getRand().nextInt(2) + 1;
-
-
-					//carveOrigin = mutateRoom.getRandomCellGeneral();
-					for(int i = carveStart.getX() - width; i < carveStart.getX() + width; i++)
-					{
-						for(int j = carveStart.getY() - height; j < carveStart.getY() + height; j++)
+						// Context aware mutations
+						// Add Neighbor
+						else if(mutationSelection == 1)
 						{
-							if(!outOfBounds(i, j))
+							
+							// Check to see if the cell qualifies for the mutation
+							Cell c = roomCells.get(i);
+							for(Direction dir : allDir)
 							{
-								getCell(i, j).changeCellType(Globals.WALL);
-								getCell(i,j).setRoomAssignment(-1);
-								mutateRoom.getCells().remove(getCell(i,j));	
+								if(!outOfBounds(c.getX() + dir.dx, c.getY() + dir.dy) && getCell(c.getX() + dir.dx, c.getY() + dir.dy).getCellType() == Globals.WALL)
+								{
+									getCell(c.getX() + dir.dx, c.getY() + dir.dy).changeCellType(Globals.ROOM);
+									getCell(c.getX() + dir.dx, c.getY() + dir.dy).setRoomAssignment(mutateRoom.getNumber());
+									roomCells.add(getCell(c.getX() + dir.dx, c.getY() + dir.dy));
+									successfulMutation = true;
+								}
 							}
-						}
-					}
-				}
-				// Room Shift
-				else if(mutationSelection == 5)
-				{
-					
-					// Choose a direction and move the whole room that way by X cells
-					Direction randDir = Direction.randomDir();
-					ArrayList<Cell> roomCells = mutateRoom.getCells();
-					Cell currCell;
-					int shiftBy = getRand().nextInt(2) + 1;
 
-					for(int i = 0; i < roomCells.size(); i ++)
-					{
-						currCell = roomCells.get(i);
-						if(!outOfBounds(currCell.getX() + (shiftBy * randDir.dx), currCell.getY() + (shiftBy * randDir.dy)))// && !roomCells.contains(getCell(currCell.getX() + (shiftBy * randDir.dx), currCell.getY() + (shiftBy * randDir.dy))))
+						}
+						// Connect Room
+						else if(mutationSelection == 2)
 						{
-							getCell(currCell.getX() + (randDir.dx * shiftBy), currCell.getY() + (randDir.dy * shiftBy)).changeCellType(Globals.TEST_MUTATION);
-							getCell(currCell.getX() + (randDir.dx * shiftBy), currCell.getY() + (randDir.dy * shiftBy)).setRoomAssignment(mutateRoom.getNumber());
-							roomCells.add(i, getCell(currCell.getX() + (randDir.dx * shiftBy), currCell.getY() + (randDir.dy * shiftBy)));
 							
-						}
-							getCell(currCell.getX(), currCell.getY()).changeCellType(Globals.TEST_MUTATION_2);
-							getCell(currCell.getX(), currCell.getY()).setRoomAssignment(-1);
-							roomCells.remove(currCell);
-							
-					}
+							// For each direction, check if a room is nearby, if true connect them
+							Cell c = roomCells.get(i);
+							for(Direction dir: allDir)
+							{
+								if(!outOfBounds(c.getX() + (dir.dx * 3), c.getY() + (dir.dy * 3)) && getCell(c.getX() + (dir.dx * 3), c.getY() + (dir.dy * 3)).getCellType() == Globals.ROOM && getCell(c.getX() + (dir.dx * 3), c.getY() + (dir.dy * 3)).getRoomAssignment() != mutateRoom.getNumber())
+								{
+									
+									// There is a nearby room
+									getCell(c.getX() + (dir.dx * 2), c.getY() + (dir.dy * 2)).changeCellType(Globals.ROOM);
+									getCell(c.getX() + (dir.dx * 2), c.getY() + (dir.dy * 2)).setRoomAssignment(mutateRoom.getNumber());
 
-					//mutateRoom.removeNonRooms();
+									getCell(c.getX() + dir.dx, c.getY() + dir.dy).changeCellType(Globals.ROOM);
+									getCell(c.getX() + dir.dx, c.getY() + dir.dy).setRoomAssignment(mutateRoom.getNumber());
+
+									successfulMutation = true;
+								}
+							}
+
+						}
+					}
+					
 				}
 			}
-		}
-		
+		}	
+
 
 		for(int i = 0; i < hallways.size(); i++)
 		{
-			if(hallways.get(i).size() < 2)
+			hallways.get(i).purge();
+
+			if(hallways.get(i).size() < 5)
 			{
-				hallways.get(i).purge();
+				hallways.get(i).erase();
 				hallways.remove(hallways.get(i));
 				i--;
 			}
 		}
+
 		for(int i = 0; i < rooms.size(); i++)
 		{
-			if(rooms.get(i).size() < 4)
+			// purge removes any cells that no longer belong in the room
+			rooms.get(i).purge();
+
+			if(rooms.get(i).size() < 3)
 			{
-				rooms.get(i).purge();
+				rooms.get(i).erase();
 				rooms.remove(rooms.get(i));
 				i--;
 			}
 		}
-
-		
 		
 	}
 	
@@ -523,28 +425,30 @@ public class GridMapCavern extends GridMap
 	public double evaluateFitness()
 	{
 		
-
+		setFitness(0.0);
 		double myFit = 0.0;
 		
 
 		// Should be a lot of rooms
 		// Rooms should be large and non-uniform
-		if(getRoomsVector().size() > 10 && getRoomsVector().size() < 15)
+		if(getRoomsVector().size() > 5 && getRoomsVector().size() < 10)
 		{
-			myFit += 1000;
+			myFit += 500;
 		}
-		else if(getRoomsVector().size() >= 5)
+		
+
+		if(getHallwaysVector().size() == getRoomsVector().size())
 		{
 			myFit += 400;
 		}
-		else if(getRoomsVector().size() < 5)
+		else if(getHallwaysVector().size() > getRoomsVector().size() && getHallwaysVector().size() < getRoomsVector().size() * 3)// && getHallwaysVector().size() < getRoomsVector().size() + 10)
 		{
-			myFit -= 500;
+			myFit += 500;
 		}
+
 		myFit += evaluateHallways();
 		myFit += evaluateRooms();
 		
-		//myFit += evaluateDoors();
 
 		if(myFit <= 0)
 		{
@@ -557,258 +461,114 @@ public class GridMapCavern extends GridMap
 		
 	}
 
-	// Evaluate cavern's walls
-	// Walls can exist in the middle of large rooms and act as a "support beam" type structure
-	// Walls should line all the rooms that make up the cavern
 	
-	private double evaluateWalls()
-	{
-		// Walls can be short clumps inside rooms. Act as pillars in the cave
-		// Walls should be fairly abundant
-
-		Vector<Cell> walls = getWallsVector();
-		double fitness = 0;
-
-		if(walls.size() < 500)
-		{
-			fitness -= 200;
-		}
-		else if(walls.size() > 600 )
-		{
-			fitness += 900;
-		}
-		else if(walls.size() > 1000)
-		{
-			fitness += 500;
-		}
-		else
-		{
-			fitness += 100;
-		}
-
-		// If a wall is surrounded by rooms or all rooms and 1 other wall, thats good
-		for(Cell wall : walls)
-		{
-			// 3 possibilities
-			// surrounded by rooms / surrounded by rooms + 1 or 2 walls / not touching rooms
-			switch(wallInRoom(wall))
-			{
-				case 0: fitness += 30;
-						break;
-
-				case 1: fitness += 30;
-						break;
-
-				case 2: fitness -= 2;
-			}
-
-		}
-
-		// Ideally, walls should surround rooms
-		// If a wall touches a room on one side and all other sides are walls - increase fitness
-		// If a wall touches a room on one side and some other sides are walls - sorta increase fitness
-		for(Cell wall : walls)
-		{
-			switch(wallSurroundings(wall))
-			{
-				// Wall in room or surrounded by walls
-				case 0: case 1: fitness += 25; break;
-				// Wall borders a room
-				case 2: fitness += 20; break;
-				// Wall exists somewhere, but not in an ideal spot
-				case 3: fitness += 5; break;
-				// Wall exists
-				case 4: break;
-
-			}
-			
-		}
-
-		return fitness;
-
-
-	}
-
 	// Evaluate cavern's hallways
 	
 	
 	private double evaluateHallways()
 	{
+		//System.out.printf("Eval Hallways");
 		double fitness = 0;
 		Vector<Hallway> hallways = getHallwaysVector();
 		Vector<Room> rooms = getRoomsVector();
+		int sumOfHallways = 0;
 		
-		// Hallways are supposed to connect rooms
-			// for each hallways see if it relatively between 2 rooms
-			// If a hallway cell is bordering a room, good
-		// Hallways shouldnt be 1 wide in a cave
-			// Scan area around a cell and see if the hall is "wide"
-				// width of 2 to 5 is probably ideal and gives room for variety
-		// Hallways should be relatively straight
-			// If can go from room A to room B without turning maybe too straight?
-		Cell roomOneCell;
-		Cell roomTwoCell;
-		int diffX;
-		int diffY;
-
-		int roomCount;
-		int hallCount;
-		int wallCount;
-
-		int firstRoomNum;
-		int secondRoomNum;
+		
 		int lowestX; 
 		int highestX;
 		int lowestY;
 		int highestY;
+
+		ArrayList<Integer> connectingRooms = new ArrayList<Integer>();
+		ArrayList<Integer> connectingHalls = new ArrayList<Integer>();
+
+		if(hallways.size() < rooms.size())
+		{
+			fitness -= 250;
+		}
 		
-		/*if(hallways.size() <= 1)
-		{
-			fitness -= 1000;
-		}
-		else if(hallways.size() == rooms.size())
-		{
-			fitness += 800;
-		}
-		else if(hallways.size() - rooms.size() > 0 && hallways.size() - rooms.size() < 2)
-		{
-			fitness += 400;
-		}*/
 
 
 		for(Hallway hall: hallways)
 		{
-			firstRoomNum = -1;
-			secondRoomNum = -1;
+			connectingRooms.clear();
+			connectingHalls.clear();
 			lowestX = 100; 
 			highestX = 0;
 			lowestY = 100;
 			highestY = 0;
-
-			for(Cell currCell : hall.getCells())
+			sumOfHallways += hall.size();
+			
+			for(Cell c : hall.getCells())
 			{
-				
-				roomCount = 0;
-				hallCount = 0;
-				wallCount = 0;
-
-				// Determine if current cell falls between 2 rooms
-				// The more cells that are between 2 rooms, the higher the fitness
-				if(rooms.size() > 0)
+				// Gather the number of rooms this hallway connects
+				for(Direction dir: allDir)
 				{
-					Room r = rooms.get(getRand().nextInt(rooms.size()));
-					
-					roomOneCell = rooms.get(getRand().nextInt(rooms.size())).getRandomCellGeneral();
-					roomTwoCell = rooms.get(getRand().nextInt(rooms.size())).getRandomCellGeneral();
-
-					while(roomOneCell == roomTwoCell)
+					if(!outOfBounds(c.getX() + dir.dx, c.getY() + dir.dy) && getCell(c.getX() + dir.dx, c.getY() + dir.dy).getCellType() == Globals.ROOM && !connectingRooms.contains(getCell(c.getX() + dir.dx, c.getY() + dir.dy).getRoomAssignment()))
 					{
-						roomTwoCell = rooms.get(getRand().nextInt(rooms.size())).getRandomCellGeneral();
+						connectingRooms.add(getCell(c.getX() + dir.dx, c.getY() + dir.dy).getRoomAssignment());
 					}
-					
-					// Determine if this cell is between two rooms
-					if((Math.abs(roomOneCell.getX() - currCell.getX()) < 3 && Math.abs(roomTwoCell.getX() - currCell.getX()) < 3) && (Math.abs(roomOneCell.getY() - currCell.getY()) < 3 && Math.abs(roomTwoCell.getY() - currCell.getY()) < 3))
+					else if(!outOfBounds(c.getX() + dir.dx, c.getY() + dir.dy) && getCell(c.getX() + dir.dx, c.getY() + dir.dy).getCellType() == Globals.HALLWAY && getCell(c.getX() + dir.dx, c.getY() + dir.dy).getHallwayAssignment() != hall.getNumber() && !connectingHalls.contains(getCell(c.getX() + dir.dx, c.getY() + dir.dy).getHallwayAssignment()))
 					{
-						// Current cell is roughly between the two rooms
-						fitness += 0;
-					}		
-				}
-				else
-				{
-					// this map doesnt have any rooms somehow, destroy fitness
-					fitness -= 1000000;
-				}
-
-				// Check if the hallway connects 2 rooms together
-				// Check each cell, if it touches a room, get that room number, then check other cells and see if they touch a room with a different room number
-				for(Direction dir : allDir)
-				{
-					if(!outOfBounds(currCell.getX() + dir.dx, currCell.getY() + dir.dy) && getCell(currCell.getX() + dir.dx, currCell.getY() + dir.dy).getCellType() == Globals.ROOM && firstRoomNum == -1)
-					{
-						firstRoomNum = getCell(currCell.getX() + dir.dx, currCell.getY() + dir.dy).getRoomAssignment();
-					}
-					else if(!outOfBounds(currCell.getX() + dir.dx, currCell.getY() + dir.dy) && getCell(currCell.getX() + dir.dx, currCell.getY() + dir.dy).getCellType() == Globals.ROOM && firstRoomNum != -1)
-					{
-						secondRoomNum = getCell(currCell.getX() + dir.dx, currCell.getY() + dir.dy).getRoomAssignment();
-						break;
+						connectingHalls.add(getCell(c.getX() + dir.dx, c.getY() + dir.dy).getHallwayAssignment());
 					}
 				}
+				if(c.getX() < lowestX)
+					lowestX = c.getX();
+				else if(c.getX() > highestX)
+					highestX = c.getX();
 
-				// Check if hallway isn't in the shape of an actual hallway
-				// If the hallways lowest point (highest Y) and highest point (lowest Y) aren't different enough AND if the highest X and lowest X aren't different enough
-				if(currCell.getX() < lowestX)
-					lowestX = currCell.getX();
-				else if(currCell.getX() > highestX)
-					highestX = currCell.getX();
-
-				if(currCell.getY() < lowestY)
-					lowestY = currCell.getY();
-				else if(currCell.getY() > highestY)
-					highestY = currCell.getY();
-
-				
-
-								
-					
-				
-
-				// Check if currCell is a room border
-				// Scan surrounding cells to see if theyre also a hallway
-
-
+				if(c.getY() < lowestY)
+					lowestY = c.getY();
+				else if(c.getY() > highestY)
+					highestY = c.getY();
 			}
 
-			if(hall.size() > 0)
+
+
+
+
+			// Fitness changes
+			if(hall.size() > 15)
 			{
-
-				
-				// Check hallway width
-				Cell hallCell = hall.getCells().get(getRand().nextInt(hall.getCells().size()));
-				Direction randomDir = Direction.randomDir();
-				int width = 0;
-				while(!outOfBounds(hallCell.getX() + randomDir.dx, hallCell.getY() + randomDir.dy) && getCell(hallCell.getX() + randomDir.dx, hallCell.getY() + randomDir.dy).getHallwayAssignment() == hallCell.getHallwayAssignment())
-				{
-					width++;
-					hallCell = getCell(hallCell.getX() + randomDir.dx, hallCell.getY() + randomDir.dy);
-				}
-
-				if(width >= 5)
-				{
-					//Probably moving in length
-				}
-				else if(width <= 4)
-				{
-					// Hopefully width
-					fitness += 50;
-				}
+				fitness += 200;
+			}
+			else if(hall.size() > 10)
+			{
+				fitness += 100;
 			}
 			else
 			{
-				System.out.printf("Hallways with size 0??\n");
-			}
-			
-			
-			if(firstRoomNum != -1 && secondRoomNum != -1 && firstRoomNum != secondRoomNum)
-			{
-				// The hallway must connect atleast 2 rooms
-				fitness += 1000;
-				
+				fitness -= 100;
 			}
 
-			if( highestX - lowestX > 5 && highestY - lowestY > 5 && getCell(highestX - (getRand().nextInt(highestX - lowestX) + 1), lowestY + (getRand().nextInt(highestY - lowestY) + 1)).getCellType() != Globals.HALLWAY && getCell(lowestX  + (getRand().nextInt(highestX - lowestX) + 1), highestY - (getRand().nextInt(highestY - lowestY) + 1)).getCellType() != Globals.HALLWAY)
+
+			// Add to fitness based on how many rooms and hallway this hallway connects
+			if(connectingRooms.size() == 2)
 			{
-				// Hallway is narrow and long
-				fitness += 500;
+				fitness += 300;
 			}
-			else if(highestX - lowestX <= 5 && highestY - lowestY <= 5)
+			else if(connectingRooms.size() == 3)
 			{
-				// Hall is narrow and short
-				fitness += 500;
+				fitness += 400;
 			}
-			else
+			else if(connectingRooms.size() == 0)
 			{
-				fitness -= 200;
+				fitness -= 500;
 			}
+			
+
+			// Evaluate how narrow the hallway is
+			if((highestX - lowestX > 12 && highestY - lowestY < 5) || highestY - lowestY > 12 && highestX - lowestX < 5)
+			{
+				// horizonal with a little deviation
+				fitness += 200;
+			}
+			else if((highestX - lowestX > 20 && highestY - lowestY < 7) || highestY - lowestY > 20 && highestX - lowestX < 7)
+			{
+				fitness += 300;
+			}
+			
 
 		}
 
@@ -842,85 +602,72 @@ public class GridMapCavern extends GridMap
 		double fitness = 0;
 		Vector<Room> rooms = getRoomsVector();
 		Cell neighborCell;
+
+		ArrayList<Integer> connectingHalls = new ArrayList<Integer>();
+		ArrayList<Integer> connectingRooms = new ArrayList<Integer>();
 		
 		// Rooms should be generally large
 		// Rooms should NOT overlap with one another
 		// Rooms should try to seperate
 		// Rooms should try to connect to hallways
 
-		for(Room evalRoom: rooms)
-		{
-			lowestX = 100;
-			lowestY = 100;
-			highestX = 0;
-			highestY = 0;
-			wallContact = 0;
-			hallContact = 0;
-			roomContact = 0;
+		// For each room check to see how many hallways it connects to
+		// If it connects to other rooms
 
-			// Evaluate evalRooms likely center point and surroundings
-			for(Cell c : evalRoom.getCells())
+		if(rooms.size() < 3)
+		{
+			fitness -= 300;
+		}
+
+		for(Room room: rooms)
+		{
+			connectingRooms.clear();
+			connectingHalls.clear();
+			lowestX = 100; 
+			highestX = 0;
+			lowestY = 100;
+			highestY = 0;
+
+			for(Cell c : room.getCells())
 			{
+				for(Direction dir: allDir)
+				{
+					if(!outOfBounds(c.getX() + dir.dx, c.getY() + dir.dy) && getCell(c.getX() + dir.dx, c.getY() + dir.dy).getCellType() == Globals.ROOM && getCell(c.getX() + dir.dx, c.getY() + dir.dy).getHallwayAssignment() != room.getNumber() && !connectingRooms.contains(getCell(c.getX() + dir.dx, c.getY() + dir.dy).getRoomAssignment()))
+					{
+						connectingRooms.add(getCell(c.getX() + dir.dx, c.getY() + dir.dy).getRoomAssignment());
+					}
+					else if(!outOfBounds(c.getX() + dir.dx, c.getY() + dir.dy) && getCell(c.getX() + dir.dx, c.getY() + dir.dy).getCellType() == Globals.HALLWAY  && !connectingHalls.contains(getCell(c.getX() + dir.dx, c.getY() + dir.dy).getHallwayAssignment()))
+					{
+						connectingHalls.add(getCell(c.getX() + dir.dx, c.getY() + dir.dy).getHallwayAssignment());
+					}
+				}
+
 				if(c.getX() < lowestX)
 					lowestX = c.getX();
-
-				if(c.getX() > highestX)
+				else if(c.getX() > highestX)
 					highestX = c.getX();
 
 				if(c.getY() < lowestY)
 					lowestY = c.getY();
-
-				if(c.getY() > highestY)
+				else if(c.getY() > highestY)
 					highestY = c.getY();
 
-				for(Direction dir: allDir)
-				{
-					if(!outOfBounds(c.getX() + dir.dx, c.getY() + dir.dy))
-					{
-						neighborCell = getCell(c.getX() + dir.dx, c.getY() + dir.dy);
-						if(neighborCell.getCellType() == Globals.HALLWAY)
-						{
-							hallContact++;
-							break;
-						}
-						else if(neighborCell.getCellType() == Globals.WALL || neighborCell.getCellType() == Globals.BLOCKED)
-						{
-							wallContact++;
-							break;
-						}
-						else if(neighborCell.getCellType() == Globals.ROOM && neighborCell.getRoomAssignment() != evalRoom.getNumber())
-						{
-							roomContact++;
-							break;
-						}
-					}
-					
-				}
-
+				
 			}
 
 			centerX =  highestX - ((highestX - lowestX) / 2);
 			centerY =  highestY - ((highestY - lowestY) / 2);
 
-			if(evalRoom.size() > 130)
-				fitness -= 200;
-			else if(evalRoom.size() < 30)
-				fitness -= 200;
-			else
-				fitness += 400;
-			
-			// Evaluate each rooms distance from each other
-
-			for(Room currentRoom : rooms)
+			for(Room currRoom: rooms)
 			{
-				if(evalRoom != currentRoom)
+				if(currRoom != room)
 				{
 					currRoomLowX = 100;
 					currRoomLowY = 100;
 					currRoomHighX = 0;
 					currRoomHighY = 0;
 
-					for(Cell c: currentRoom.getCells())
+					for(Cell c: currRoom.getCells())
 					{
 						if(c.getX() < currRoomLowX)
 							currRoomLowX = c.getX();
@@ -938,29 +685,51 @@ public class GridMapCavern extends GridMap
 					currRoomCenterX = currRoomHighX - ((currRoomHighX - currRoomLowX) / 2);
 					currRoomCenterY = currRoomHighY - ((currRoomHighY - currRoomLowY) / 2);
 
-					if(Math.abs(centerX - currRoomCenterX) > 9 || Math.abs(centerY - currRoomCenterY) > 9)
+					if(Math.abs(centerX - currRoomCenterX) > 12 || Math.abs(centerY - currRoomCenterY) > 12)
 					{
 						// Rooms are probably pretty far apart
-						fitness += 300;
-					}
-					else
-					{
-						fitness -= 100;
+						fitness += 250;
 					}
 				}
 			}
-
-			if(hallContact >= 15)
-				fitness -= 100;
-			else if(hallContact < 15 && hallContact > 0)
-				fitness += 300;
-
-			if(wallContact - ((highestX - lowestX) + (highestY - lowestY)) > 0)
-				fitness += 150;
 			
-			if(roomContact != 0)
-				fitness -= 200;
 		}
+
+		
+
+
+		// Evaluate connections
+		if(connectingRooms.size() == 0)
+		{
+			fitness += 150;
+		}
+
+
+		if(connectingHalls.size() > 0 && connectingHalls.size() < 4)
+		{
+			fitness += connectingHalls.size() * 150;
+		}
+		else if(connectingHalls.size() > 4 )
+		{
+			fitness += connectingHalls.size() * 50;
+		}
+
+		// Evaluate room size
+		if(highestX - lowestX > 5 && highestY - lowestY > 5 && highestX - lowestX < 12 && highestY - lowestY < 12)
+		{
+			fitness += 150;
+		}
+
+		// Evaluate uniformity
+		if((highestX - lowestX) != (highestY - lowestY))
+		{
+			// Perfect Square
+			fitness += 150;
+		}
+		
+		
+
+
 		return fitness;
 	}
 

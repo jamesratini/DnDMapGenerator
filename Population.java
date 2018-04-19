@@ -144,6 +144,7 @@ public class Population
 
 		// sort THIS population's maps by fitness
 		sortByFitness();
+		
 
 		// allMaps is sorted in descending order, so highest fitness maps are located at the end
 		for(int i = allMaps.size() - 1; i > allMaps.size() - elitismIndex - 1; i--)
@@ -166,6 +167,7 @@ public class Population
 		return newPop;
 
 	}
+
 	private GridMap produceChildMap()
 	{
 

@@ -260,6 +260,8 @@ public class GridMap
 	// -- FOR CREATION
 	protected void fillVectors()
 	{
+		//hallways.clear();
+		//rooms.clear();
 		for(int i = 0; i < gridWidth; i++)
 	    {
 	    	for(int j = 0; j <gridHeight; j++)
@@ -275,8 +277,10 @@ public class GridMap
 				else if(allTiles[i][j].getCellType() == Globals.HALLWAY && allTiles[i][j].getHallwayAssignment() == -1)
 				{
 					// Start new hallway
+					//System.out.printf("Starting hallway %d \n", hallways.size());
 					hallways.add(new Hallway(hallways.size()));
 					hallFill(allTiles[i][j].getX(), allTiles[i][j].getY());
+					//System.out.printf("Hallway %d size: %d \n", hallways.size() - 1, hallways.get(hallways.size() - 1).size());
 					
 				}
 				else
@@ -291,8 +295,8 @@ public class GridMap
 
 	private boolean hallFill(int locationX, int locationY)
 	{
-		// Reject - current cell is a wall, OOB, or already visited --> return false
-		if(outOfBounds(locationX, locationY) || allTiles[locationX][locationY].getCellType() != Globals.HALLWAY || allTiles[locationX][locationY].getHallwayAssignment() > -1)
+		// Reject - current cell is OOB, hallway has reached max size, not a hallway, or has already been assigned to a hallway
+		if(outOfBounds(locationX, locationY) || hallways.get(hallways.size() - 1).size() == 25 || allTiles[locationX][locationY].getCellType() != Globals.HALLWAY || allTiles[locationX][locationY].getHallwayAssignment() > -1)
 		{
 			// Ran into a wall, out of bounds, or somewhere we've already been
 			return false;
@@ -303,7 +307,6 @@ public class GridMap
 		// Set this cells roomAssignment and add it to the proper room
 		allTiles[locationX][locationY].setHallwayAssignment(hallways.size() - 1);
 		hallways.get(hallways.size() - 1).add(allTiles[locationX][locationY]);
-
 
 
 		boolean result;
@@ -437,7 +440,7 @@ public class GridMap
 		int startHeight;
 
 		int geneticAttempts = 50;
-		int geneticRoomMax = 12;
+		int geneticRoomMax = 9;
 		int geneticRoomMin = 3;
 		
 		try
@@ -1017,8 +1020,8 @@ public class GridMap
 		    ig2.setColor(Color.BLACK);
 		    ig2.fillRect(0, 0, width, height);
 
-		    //drawCells(ig2, width, height, gridWidth, gridHeight);
-		    drawComplete(ig2, width, height, gridWidth, gridHeight);
+		    drawCells(ig2, width, height, gridWidth, gridHeight);
+		    //drawComplete(ig2, width, height, gridWidth, gridHeight);
 
 		    drawGrid(ig2, width / gridWidth, height / gridHeight);
 
@@ -1071,12 +1074,12 @@ public class GridMap
 				}
 				else if(allTiles[i][j].getCellType() == Globals.HALLWAY)
 				{
-					pencil.setColor(Color.GRAY);
+					pencil.setColor(Color.WHITE);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));	
 				}
 				else if(allTiles[i][j].getCellType() == Globals.ROOM)
 				{
-					pencil.setColor(Color.GRAY);
+					pencil.setColor(Color.WHITE);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));		
 				}
 			}
