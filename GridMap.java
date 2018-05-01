@@ -31,6 +31,7 @@ public class GridMap
 	private Vector<Cell> monsters;
 	private Vector<Cell> treasures;
 	private Vector<Room> rooms;
+	private Vector<Cell> traps;
 	private int numCellTypes;
 	private String name;
 
@@ -48,6 +49,7 @@ public class GridMap
 		doors = new Vector<Cell>();
 		walls = new Vector<Cell>();
 		rooms = new Vector<Room>();
+		traps = new Vector<Cell>();
 		monsters = new Vector<Cell>();
 		treasures = new Vector<Cell>();
 		Globals g = new Globals();
@@ -85,6 +87,7 @@ public class GridMap
 	    expandMaze();
 	    designateMonsters();
 	    designateTreasures();
+	    designateTraps();
 
 	    // vectors for evaluation
 	    fillVectors();
@@ -161,6 +164,10 @@ public class GridMap
 	protected Vector<Cell> getTreasuresVector()
 	{
 		return treasures;
+	}
+	protected Vector<Cell> getTrapsVector()
+	{
+		return traps;
 	}
 	protected Vector<Cell>getAllTraversableCells()
 	{
@@ -455,6 +462,10 @@ public class GridMap
 		{
 			treasures.add(cellToAssign);
 		}
+		else if(cellToAssign.getCellType() == Globals.TRAP)
+		{
+			traps.add(cellToAssign);
+		}
 	}
 	
 	private void designateRooms()
@@ -552,6 +563,24 @@ public class GridMap
 			if(allTiles[placementX][placementY].getCellType() == Globals.HALLWAY || allTiles[placementX][placementY].getCellType() == Globals.ROOM)
 			{
 				allTiles[placementX][placementY].changeCellType(Globals.TREASURE);
+			}
+		}
+	}
+
+	private void designateTraps()
+	{
+		int treasureAttempts = 40;
+		int placementX;
+		int placementY;
+
+		for(int i = 0; i < treasureAttempts; i++)
+		{
+			placementX = rand.nextInt(gridWidth);
+			placementY = rand.nextInt(gridHeight);
+
+			if(allTiles[placementX][placementY].getCellType() == Globals.HALLWAY || allTiles[placementX][placementY].getCellType() == Globals.ROOM)
+			{
+				allTiles[placementX][placementY].changeCellType(Globals.TRAP);
 			}
 		}
 	}
@@ -1180,6 +1209,11 @@ public class GridMap
 				else if( allTiles[i][j].getCellType() == Globals.TREASURE)
 				{
 					pencil.setColor(Color.MAGENTA);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
+				else if( allTiles[i][j].getCellType() == Globals.TRAP)
+				{
+					pencil.setColor(Color.YELLOW);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
 				else if(allTiles[i][j].getCellType() == Globals.TEST_MUTATION)

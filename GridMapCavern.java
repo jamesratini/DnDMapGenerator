@@ -43,10 +43,14 @@ public class GridMapCavern extends GridMap
 		Vector<Cell> parentBMonsters  = (Vector)parentB.getMonstersVector().clone();
 		Vector<Cell> parentATreasures = (Vector)parentA.getTreasuresVector().clone();
 		Vector<Cell> parentBTreasures = (Vector)parentB.getTreasuresVector().clone();
+		Vector<Cell> parentATraps = (Vector)parentA.getTrapsVector().clone();
+		Vector<Cell> parentBTraps = (Vector)parentB.getTrapsVector().clone();
+
 		Room parentRoom;
 		Hallway parentHall;
 		Cell parentMonster;
 		Cell parentTreasure;
+		Cell parentTrap;
 
 
 		// Hallway crossover
@@ -181,6 +185,27 @@ public class GridMapCavern extends GridMap
 			getCell(parentTreasure.getX(), parentTreasure.getY()).changeCellType(Globals.TREASURE);
 		}
 
+		numChildGenes = (parentATraps.size() + parentBTraps.size()) / 2;
+
+		for(int i = 0; i < numChildGenes; i++)
+		{
+			parentSelection = getRand().nextInt(2);
+			if(parentSelection == 0 && parentATreasures.size() > 0)
+			{
+				parentTrap = parentATraps.remove(getRand().nextInt(parentATreasures.size()));
+			}
+			else if(parentSelection == 1 && parentBTreasures.size() > 0)
+			{
+				parentTrap = parentBTraps.remove(getRand().nextInt(parentBTreasures.size()));
+			}
+			else
+			{
+				break;
+			}
+
+			getCell(parentTrap.getX(), parentTrap.getY()).changeCellType(Globals.TRAP);
+		}
+
 		fillVectors();
 		mutate(mutationRate);
 		//fillVectors();
@@ -204,6 +229,7 @@ public class GridMapCavern extends GridMap
 		Vector<Hallway> hallways = getHallwaysVector();
 		Vector<Cell> monsters = getMonstersVector();
 		Vector<Cell> treasures = getTreasuresVector();
+		Vector<Cell> traps = getTrapsVector();
 		boolean successfulMutation = false;
 		
 		int mutationSelection = 0;
@@ -535,6 +561,76 @@ public class GridMapCavern extends GridMap
 							getCell(mutateTreasure.getX() + (dir.dx * shiftBy),mutateTreasure.getY() + (dir.dy * shiftBy)).changeCellType(Globals.TREASURE);
 							treasures.add(getCell(mutateTreasure.getX() + (dir.dx * shiftBy),mutateTreasure.getY() + (dir.dy * shiftBy)));
 						}
+						successfulMutation = true;
+					}
+
+				}
+			}
+		}
+		// Trap Mutation
+		for(Cell mutateTrap : traps)
+		{
+			if(getRand().nextDouble() < mutationRate)
+			{
+				successfulMutation = false;
+				while(!successfulMutation)
+				{
+					mutationSelection = getRand().nextInt(2);
+
+					// Shift Mutation
+					if(mutationSelection == 0)
+					{
+						Direction dir = Direction.randomDir();
+						int shiftBy = getRand().nextInt(3) + 1;
+
+						if(!outOfBounds(mutateTrap.getX() + (dir.dx * shiftBy),mutateTrap.getY() + (dir.dy * shiftBy)))
+						{
+							getCell(mutateTrap.getX(), mutateTrap.getY()).changeCellType(Globals.WALL);
+							traps.remove(mutateTrap);
+
+							getCell(mutateTrap.getX() + (dir.dx * shiftBy),mutateTrap.getY() + (dir.dy * shiftBy)).changeCellType(Globals.TRAP);
+							traps.add(getCell(mutateTrap.getX() + (dir.dx * shiftBy),mutateTrap.getY() + (dir.dy * shiftBy)));
+						}
+						successfulMutation = true;
+					}
+					// Context Aware
+					// Move to Room Entrance
+					else if(mutationSelection == 1)
+					{
+						
+						// If monster has 2 neighbor hallways and is within reasonable range of a room
+						int neighborHalls = 0;
+						Direction nearbyRoomDir = null;
+						int nearbyRoomDistance = 0;
+						for(Direction dir: allDir)
+						{
+							if(!outOfBounds(mutateTrap.getX() + dir.dx, mutateTrap.getY() + dir.dy) && getCell(mutateTrap.getX() + dir.dx, mutateTrap.getY() + dir.dy).getCellType() == Globals.HALLWAY)
+							{
+
+								neighborHalls++;
+							}
+
+							for(int i = 2; i < 7; i++)
+							{
+								if(!outOfBounds(mutateTrap.getX() + (dir.dx * i), mutateTrap.getY() + (dir.dy * i)) && getCell(mutateTrap.getX() + (dir.dx * i), mutateTrap.getY() + (dir.dy * i)).getCellType() == Globals.ROOM)
+								{
+									nearbyRoomDir = dir;
+									nearbyRoomDistance = i;
+								}
+							}
+
+							
+						}
+
+						if(neighborHalls >= 2 && nearbyRoomDir != null)
+						{
+							System.out.printf("move to room mutate \n");
+							getCell(mutateTrap.getX() + (nearbyRoomDir.dx * nearbyRoomDistance), mutateTrap.getY() + (nearbyRoomDir.dy * nearbyRoomDistance)).changeCellType(Globals.TRAP);
+							getCell(mutateTrap.getX() + (nearbyRoomDir.dx * nearbyRoomDistance), mutateTrap.getY() + (nearbyRoomDir.dy * nearbyRoomDistance)).setRoomAssignment(-1);
+							successfulMutation = true;
+						}
+
+					
 					}
 
 				}
