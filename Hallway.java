@@ -54,6 +54,7 @@ public class Hallway
 	{
 		while(allCells.size() > 0)
 		{
+			allCells.get(0).changeCellType(Globals.WALL);
 			allCells.remove(allCells.get(0));
 		}
 	}

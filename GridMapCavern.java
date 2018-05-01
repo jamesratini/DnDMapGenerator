@@ -39,8 +39,14 @@ public class GridMapCavern extends GridMap
 		Vector<Hallway> parentBHallways = (Vector)parentB.getHallwaysVector().clone();
 		Vector<Room> parentARooms = (Vector)parentA.getRoomsVector().clone();
 		Vector<Room> parentBRooms = (Vector)parentB.getRoomsVector().clone();
+		Vector<Cell> parentAMonsters = (Vector)parentA.getMonstersVector().clone();
+		Vector<Cell> parentBMonsters  = (Vector)parentB.getMonstersVector().clone();
+		Vector<Cell> parentATreasures = (Vector)parentA.getTreasuresVector().clone();
+		Vector<Cell> parentBTreasures = (Vector)parentB.getTreasuresVector().clone();
 		Room parentRoom;
 		Hallway parentHall;
+		Cell parentMonster;
+		Cell parentTreasure;
 
 
 		// Hallway crossover
@@ -115,16 +121,7 @@ public class GridMapCavern extends GridMap
 				break;
 			}
 
-			// Mutation occurance
-			// 
-			// NOTE: mutateRoom adds mutated cells to the room
-			//		 then the loop below will 
-			//		 then fillVectors below will make sure the mutated cells are added to the room for future generations
-			/*if(getRand().nextDouble() < mutationRate && parentRoom.getCells().size() > 0)
-			{
-				parentRoom = mutateRoom(parentRoom);
-			}*/
-		
+			
 
 			// allTiles cells are all null at this point
 			// Loop through parents room and assign corresponding cells to ROOM
@@ -138,6 +135,50 @@ public class GridMapCavern extends GridMap
 				}
 				
 			}
+		}
+
+		numChildGenes = (parentAMonsters.size() + parentBMonsters.size()) / 2;
+
+		for(int i = 0; i < numChildGenes; i++)
+		{
+			parentSelection = getRand().nextInt(2);
+
+			if(parentSelection == 0 && parentAMonsters.size() > 0)
+			{
+				parentMonster = parentAMonsters.remove(getRand().nextInt(parentAMonsters.size()));
+			}
+			else if(parentSelection == 1 && parentBMonsters.size() > 0)
+			{
+				parentMonster = parentBMonsters.remove(getRand().nextInt(parentBMonsters.size()));
+			}
+			else
+			{
+				break;
+			}
+
+			getCell(parentMonster.getX(), parentMonster.getY()).changeCellType(Globals.MONSTER);
+		}
+
+		numChildGenes = (parentATreasures.size() + parentBTreasures.size()) / 2;
+
+		for(int i = 0; i < numChildGenes; i++)
+		{
+			parentSelection = getRand().nextInt(2);
+
+			if(parentSelection == 0 && parentATreasures.size() > 0)
+			{
+				parentTreasure = parentATreasures.remove(getRand().nextInt(parentATreasures.size()));
+			}
+			else if(parentSelection == 1 && parentBTreasures.size() > 0)
+			{
+				parentTreasure = parentBTreasures.remove(getRand().nextInt(parentBTreasures.size()));
+			}
+			else
+			{
+				break;
+			}
+
+			getCell(parentTreasure.getX(), parentTreasure.getY()).changeCellType(Globals.TREASURE);
 		}
 
 		fillVectors();
@@ -161,6 +202,8 @@ public class GridMapCavern extends GridMap
 	{
 		Vector<Room> rooms = getRoomsVector();
 		Vector<Hallway> hallways = getHallwaysVector();
+		Vector<Cell> monsters = getMonstersVector();
+		Vector<Cell> treasures = getTreasuresVector();
 		boolean successfulMutation = false;
 		
 		int mutationSelection = 0;
@@ -276,11 +319,15 @@ public class GridMapCavern extends GridMap
 
 							for(Direction dir: allDir)
 							{
-								if(!outOfBounds(origin.getX() + (dir.dx * 2), origin.getY() + (dir.dy * 2)) && getCell(origin.getX() + (dir.dx * 2), origin.getY() + (dir.dy * 2)).getCellType() == Globals.ROOM && getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).getCellType() == Globals.WALL )
+								if(!outOfBounds(origin.getX() + (dir.dx * 3), origin.getY() + (dir.dy * 3)) && getCell(origin.getX() + (dir.dx * 3), origin.getY() + (dir.dy * 3)).getCellType() == Globals.ROOM && getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).getCellType() == Globals.WALL )
 								{
+									getCell(origin.getX() + (dir.dx * 2), origin.getY() + (dir.dy * 2)).changeCellType(Globals.HALLWAY);
+									getCell(origin.getX() + (dir.dx * 2), origin.getY() + (dir.dy * 2)).setHallwayAssignment(mutateHall.getNumber());
+
 									getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).changeCellType(Globals.HALLWAY);
-									getCell(origin.getX(), origin.getY()).changeCellType(Globals.HALLWAY);
 									getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).setHallwayAssignment(mutateHall.getNumber());
+
+									hallCells.add(getCell(origin.getX() + (dir.dx * 2), origin.getY() + (dir.dy * 2)));
 									hallCells.add(getCell(origin.getX() + dir.dx, origin.getY() + dir.dy));
 									successfulMutation = true;
 								}
@@ -292,7 +339,7 @@ public class GridMapCavern extends GridMap
 						{
 							if(mutateHall.size() < 10)
 							{
-								int extensionLength = getRand().nextInt(10);
+								int extensionLength = getRand().nextInt(15);
 								Direction dir = Direction.randomDir();
 								Cell origin = hallCells.get(i);
 
@@ -303,9 +350,11 @@ public class GridMapCavern extends GridMap
 										getCell(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)).changeCellType(Globals.HALLWAY);
 										getCell(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)).setHallwayAssignment(mutateHall.getNumber());
 										hallCells.add(getCell(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)));
+
 									}
 									
 								}
+								successfulMutation = true;
 							}
 						}
 					}
@@ -391,6 +440,106 @@ public class GridMapCavern extends GridMap
 			}
 		}	
 
+		// Monster mutation
+		for(Cell mutateMonster: monsters)
+		{
+			if(getRand().nextDouble() < mutationRate)
+			{
+				successfulMutation = false;
+				while(successfulMutation == false)
+				{
+					mutationSelection = getRand().nextInt(2);
+
+					// Shift Position
+					if(mutationSelection == 0)
+					{
+						System.out.printf("Shift mutate \n");
+						int shiftBy = getRand().nextInt(3) + 1;
+						Direction shiftIn = Direction.randomDir();
+
+						if(!outOfBounds(mutateMonster.getX() + (shiftIn.dx * shiftBy), mutateMonster.getY() + (shiftIn.dy * shiftBy)))
+						{
+							getCell(mutateMonster.getX(), mutateMonster.getY()).changeCellType(Globals.WALL);
+							monsters.remove(mutateMonster);
+
+							getCell(mutateMonster.getX() + (shiftIn.dx * shiftBy), mutateMonster.getY() + (shiftIn.dy * shiftBy)).changeCellType(Globals.MONSTER);
+							monsters.add(getCell(mutateMonster.getX() + (shiftIn.dx * shiftBy), mutateMonster.getY() + (shiftIn.dy * shiftBy)));
+						}
+						successfulMutation = true;
+					}
+					// Context Aware
+					// Move to Room Entrance
+					else if(mutationSelection == 1)
+					{
+						
+						// If monster has 2 neighbor hallways and is within reasonable range of a room
+						int neighborHalls = 0;
+						Direction nearbyRoomDir = null;
+						int nearbyRoomDistance = 0;
+						for(Direction dir: allDir)
+						{
+							if(!outOfBounds(mutateMonster.getX() + dir.dx, mutateMonster.getY() + dir.dy) && getCell(mutateMonster.getX() + dir.dx, mutateMonster.getY() + dir.dy).getCellType() == Globals.HALLWAY)
+							{
+
+								neighborHalls++;
+							}
+
+							for(int i = 2; i < 7; i++)
+							{
+								if(!outOfBounds(mutateMonster.getX() + (dir.dx * i), mutateMonster.getY() + (dir.dy * i)) && getCell(mutateMonster.getX() + (dir.dx * i), mutateMonster.getY() + (dir.dy * i)).getCellType() == Globals.ROOM)
+								{
+									nearbyRoomDir = dir;
+									nearbyRoomDistance = i;
+								}
+							}
+
+							
+						}
+
+						if(neighborHalls >= 2 && nearbyRoomDir != null)
+						{
+							System.out.printf("move to room mutate \n");
+							getCell(mutateMonster.getX() + (nearbyRoomDir.dx * nearbyRoomDistance), mutateMonster.getY() + (nearbyRoomDir.dy * nearbyRoomDistance)).changeCellType(Globals.MONSTER);
+							getCell(mutateMonster.getX() + (nearbyRoomDir.dx * nearbyRoomDistance), mutateMonster.getY() + (nearbyRoomDir.dy * nearbyRoomDistance)).setRoomAssignment(-1);
+							successfulMutation = true;
+						}
+
+					
+					}
+
+				}
+			}
+		}
+
+		// Treasure Mutation
+		for(Cell mutateTreasure : treasures)
+		{
+			if(getRand().nextDouble() < mutationRate)
+			{
+				successfulMutation = false;
+				while(!successfulMutation)
+				{
+					mutationSelection = getRand().nextInt(2);
+
+					// Shift Mutation
+					if(mutationSelection == 0)
+					{
+						Direction dir = Direction.randomDir();
+						int shiftBy = getRand().nextInt(3) + 1;
+
+						if(!outOfBounds(mutateTreasure.getX() + (dir.dx * shiftBy),mutateTreasure.getY() + (dir.dy * shiftBy)))
+						{
+							getCell(mutateTreasure.getX(), mutateTreasure.getY()).changeCellType(Globals.WALL);
+							treasures.remove(mutateTreasure);
+
+							getCell(mutateTreasure.getX() + (dir.dx * shiftBy),mutateTreasure.getY() + (dir.dy * shiftBy)).changeCellType(Globals.TREASURE);
+							treasures.add(getCell(mutateTreasure.getX() + (dir.dx * shiftBy),mutateTreasure.getY() + (dir.dy * shiftBy)));
+						}
+					}
+
+				}
+			}
+		}
 
 		for(int i = 0; i < hallways.size(); i++)
 		{
@@ -439,7 +588,7 @@ public class GridMapCavern extends GridMap
 
 		if(getHallwaysVector().size() == getRoomsVector().size())
 		{
-			myFit += 400;
+			myFit += 200;
 		}
 		else if(getHallwaysVector().size() > getRoomsVector().size() && getHallwaysVector().size() < getRoomsVector().size() * 3)// && getHallwaysVector().size() < getRoomsVector().size() + 10)
 		{
@@ -448,7 +597,18 @@ public class GridMapCavern extends GridMap
 
 		myFit += evaluateHallways();
 		myFit += evaluateRooms();
-		
+
+		int numDisconnects = solveMaze();
+
+		if(numDisconnects == 0)
+		{
+			System.out.printf("No disconnects \n");
+			myFit += 5000;
+		}
+		else
+		{
+			myFit -= numDisconnects * - 200;
+		}
 
 		if(myFit <= 0)
 		{
@@ -461,10 +621,69 @@ public class GridMapCavern extends GridMap
 		
 	}
 
-	
+
 	// Evaluate cavern's hallways
-	
-	
+	private int solveMaze()
+	{
+		// Evaluate if all hallway and room cells can be reached
+		// recursive backtracking algorithm
+		Vector<Cell> unvisitedCells = getAllTraversableCells();
+		//System.out.printf("%d \n", unvisitedCells.size());
+		Cell current = unvisitedCells.get(Math.floorMod(getRand().nextInt(), unvisitedCells.size()));
+		Direction nextDir = null;
+		int numberOfDisconnects = 0;
+		Vector<Cell> cellStack = new Vector<Cell>();
+		
+
+		cellStack.add(current);
+
+		while(!unvisitedCells.isEmpty())
+		{
+			nextDir = null;
+			
+			
+			
+			for(Direction dir : allDir)
+			{
+				if(!outOfBounds(current.getX() + dir.dx, current.getY() + dir.dy) && unvisitedCells.contains(getCell(current.getX() + dir.dx, current.getY() + dir.dy)))
+				{
+					nextDir = dir;
+				}
+			}
+
+			if(nextDir != null)
+			{
+				
+				unvisitedCells.remove(current);
+				current = getCell(current.getX() + nextDir.dx, current.getY() + nextDir.dy);
+				cellStack.add(current);
+				//unvisitedCells.remove(current);
+				
+			}
+			else if(!cellStack.isEmpty())
+			{
+				// If no where to move, recurse
+				current = cellStack.remove(cellStack.size() - 1);
+				//getCell(current.getX(), current.getY()).changeCellType(Globals.TEST_MUTATION);
+			}
+			else
+			{
+				//System.out.printf("jumping\n");
+				// If no where to move and can't recurse, choose a new unvisited cell
+				numberOfDisconnects++;
+				current = unvisitedCells.remove(getRand().nextInt(unvisitedCells.size()));
+				//getCell(current.getX(), current.getY()).changeCellType(Globals.TEST_MUTATION_2);
+				cellStack.add(current);
+				
+			}
+
+		}
+
+		return numberOfDisconnects;
+
+
+	}
+
 	private double evaluateHallways()
 	{
 		//System.out.printf("Eval Hallways");

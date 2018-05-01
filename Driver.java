@@ -12,7 +12,7 @@ public class Driver
 		int mapType = 1; // 1 = cavern
 		int numGens = 500;
 		
-		Population pop = new Population(10, x, y, 0.03);
+		Population pop = new Population(10, x, y, 0.01);
 		pop.initialize();
 
 		GridMap highestFit = pop.getGridMap(0);

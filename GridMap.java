@@ -28,6 +28,8 @@ public class GridMap
 	private Vector<Cell> doors;
 	private Vector<Cell> walls;
 	private Vector<Hallway> hallways;
+	private Vector<Cell> monsters;
+	private Vector<Cell> treasures;
 	private Vector<Room> rooms;
 	private int numCellTypes;
 	private String name;
@@ -46,6 +48,8 @@ public class GridMap
 		doors = new Vector<Cell>();
 		walls = new Vector<Cell>();
 		rooms = new Vector<Room>();
+		monsters = new Vector<Cell>();
+		treasures = new Vector<Cell>();
 		Globals g = new Globals();
 		numCellTypes = g.getNumTypes();
 
@@ -79,7 +83,8 @@ public class GridMap
 		// Precedurally generate rooms, maze, and doors
 		designateRooms();
 	    expandMaze();
-	    designateDoors();
+	    designateMonsters();
+	    designateTreasures();
 
 	    // vectors for evaluation
 	    fillVectors();
@@ -148,6 +153,30 @@ public class GridMap
 	protected Vector<Room>getRoomsVector()
 	{
 		return rooms;
+	}
+	protected Vector<Cell> getMonstersVector()
+	{
+		return monsters;
+	}
+	protected Vector<Cell> getTreasuresVector()
+	{
+		return treasures;
+	}
+	protected Vector<Cell>getAllTraversableCells()
+	{
+		Vector<Cell> retVal = new Vector<Cell>();
+		for(int i = 0; i < gridWidth; i++)
+		{
+			for(int j = 0; j < gridHeight; j++)
+			{
+				if(allTiles[i][j].getCellType() == Globals.ROOM || allTiles[i][j].getCellType() == Globals.HALLWAY)
+				{
+					retVal.add(allTiles[i][j]);
+				}
+			}
+		}
+
+		return retVal;
 	}
 	protected void addRoom(Room r)
 	{
@@ -283,6 +312,7 @@ public class GridMap
 					//System.out.printf("Hallway %d size: %d \n", hallways.size() - 1, hallways.get(hallways.size() - 1).size());
 					
 				}
+
 				else
 				{
 					assignToVector(allTiles[i][j]);	
@@ -417,10 +447,13 @@ public class GridMap
 		{
 			
 		}
-		else
+		else if(cellToAssign.getCellType() == Globals.MONSTER)
 		{
-			
-			// Likely a room. the rooms vector is handled in fillRoomsVector()
+			monsters.add(cellToAssign);
+		}
+		else if(cellToAssign.getCellType() == Globals.TREASURE)
+		{
+			treasures.add(cellToAssign);
 		}
 	}
 	
@@ -439,8 +472,8 @@ public class GridMap
 		int startWidth; 
 		int startHeight;
 
-		int geneticAttempts = 50;
-		int geneticRoomMax = 9;
+		int geneticAttempts = 75;
+		int geneticRoomMax = 12;
 		int geneticRoomMin = 3;
 		
 		try
@@ -486,6 +519,40 @@ public class GridMap
 		catch(Exception ex)
 		{
 			ex.printStackTrace();
+		}
+	}
+	private void designateMonsters()
+	{
+		int monsterAttempts = 40;
+		int placementX; 
+		int placementY;
+
+		for(int i = 0; i < monsterAttempts; i++)
+		{
+			placementX = rand.nextInt(gridWidth);
+			placementY = rand.nextInt(gridHeight);
+
+			if(allTiles[placementX][placementY].getCellType() == Globals.HALLWAY || allTiles[placementX][placementY].getCellType() == Globals.ROOM)
+			{
+				allTiles[placementX][placementY].changeCellType(Globals.MONSTER);
+			}
+		}
+	}
+	private void designateTreasures()
+	{
+		int treasureAttempts = 40;
+		int placementX;
+		int placementY;
+
+		for(int i = 0; i < treasureAttempts; i++)
+		{
+			placementX = rand.nextInt(gridWidth);
+			placementY = rand.nextInt(gridHeight);
+
+			if(allTiles[placementX][placementY].getCellType() == Globals.HALLWAY || allTiles[placementX][placementY].getCellType() == Globals.ROOM)
+			{
+				allTiles[placementX][placementY].changeCellType(Globals.TREASURE);
+			}
 		}
 	}
 	protected void roomAssignment(Cell cell)
@@ -619,33 +686,7 @@ public class GridMap
 
 	// -- FITNESS FUNCTION
 		
-	protected Cell mutate(Cell cellForMutation, double rate)
-	{
-		double chance = rand.nextDouble();
-
-		if(chance < rate)
-		{
-			// Mutate
-			cellForMutation.changeCellType(rand.nextInt(numCellTypes));
-		} 
-		
-
-		return cellForMutation;
-	}
-	protected Cell forceMutate(Cell cellForMutation)
-	{
-		
-			// Mutate
-		cellForMutation.changeCellType(rand.nextInt(numCellTypes));
-
-		
-		
-		
-
-		return cellForMutation;
-	}
-
-
+	
 
 	public double evaluateFitness()
 	{
@@ -1131,6 +1172,16 @@ public class GridMap
 					//pencil.setColor(new Color(40, 27, 132));
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
+				else if( allTiles[i][j].getCellType() == Globals.MONSTER)
+				{
+					pencil.setColor(Color.GREEN);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
+				else if( allTiles[i][j].getCellType() == Globals.TREASURE)
+				{
+					pencil.setColor(Color.MAGENTA);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
+				}
 				else if(allTiles[i][j].getCellType() == Globals.TEST_MUTATION)
 				{
 					pencil.setColor(Color.PINK);
@@ -1138,7 +1189,7 @@ public class GridMap
 				}
 
 				
-				else
+				else if(allTiles[i][j].getCellType() == Globals.TEST_MUTATION_2)
 				{
 					// cell is either blocked or has some other type(shouldnt happen)
 					pencil.setColor(Color.RED);
