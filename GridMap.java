@@ -333,7 +333,7 @@ public class GridMap
 	private boolean hallFill(int locationX, int locationY)
 	{
 		// Reject - current cell is OOB, hallway has reached max size, not a hallway, or has already been assigned to a hallway
-		if(outOfBounds(locationX, locationY) || hallways.get(hallways.size() - 1).size() == 25 || allTiles[locationX][locationY].getCellType() != Globals.HALLWAY || allTiles[locationX][locationY].getHallwayAssignment() > -1)
+		if(outOfBounds(locationX, locationY) || hallways.get(hallways.size() - 1).size() == 30 || allTiles[locationX][locationY].getCellType() != Globals.HALLWAY || allTiles[locationX][locationY].getHallwayAssignment() > -1)
 		{
 			// Ran into a wall, out of bounds, or somewhere we've already been
 			return false;
@@ -534,7 +534,7 @@ public class GridMap
 	}
 	private void designateMonsters()
 	{
-		int monsterAttempts = 40;
+		int monsterAttempts = 20;
 		int placementX; 
 		int placementY;
 
@@ -551,7 +551,7 @@ public class GridMap
 	}
 	private void designateTreasures()
 	{
-		int treasureAttempts = 40;
+		int treasureAttempts = 20;
 		int placementX;
 		int placementY;
 
@@ -569,7 +569,7 @@ public class GridMap
 
 	private void designateTraps()
 	{
-		int treasureAttempts = 40;
+		int treasureAttempts = 20;
 		int placementX;
 		int placementY;
 
@@ -1073,6 +1073,80 @@ public class GridMap
 		return fitnessAdjustment;
 
 	}
+	public void cleanUp()
+	{
+		// Forced mutations to delete stray traps, monsters, treasures
+		// Force some hallways to connect to nearby rooms
+		// Delete hallways with no connecting rooms
+
+		System.out.printf("Cleaning final map \n");
+		Vector<Cell> traps = getTrapsVector();
+		Vector<Cell> monsters = getMonstersVector();
+		Vector<Cell> treasures = getTreasuresVector();
+		List<Direction> allDir =  Arrays.asList(Direction.values());
+		Cell currCell = null;
+		boolean clear = false;
+
+		for(int i = 0; i < traps.size(); i++)
+		{
+			currCell = traps.get(i);
+			clear = false;
+
+			for(Direction dir: allDir)
+			{
+				if(!outOfBounds(currCell.getX() + dir.dx, currCell.getY() + dir.dy) && (allTiles[currCell.getX() + dir.dx][currCell.getY() + dir.dy].getCellType() == Globals.HALLWAY || allTiles[currCell.getX() + dir.dx][currCell.getY() + dir.dy].getCellType() == Globals.ROOM))
+				{
+					clear = true;
+				}
+			}
+
+			if(!clear)
+			{
+				traps.remove(currCell);
+				currCell.changeCellType(Globals.WALL);
+			}
+		}
+
+		for(int i = 0; i < monsters.size(); i++)
+		{
+			currCell = monsters.get(i);
+			clear = false;
+
+			for(Direction dir: allDir)
+			{
+				if(!outOfBounds(currCell.getX() + dir.dx, currCell.getY() + dir.dy) && (allTiles[currCell.getX() + dir.dx][currCell.getY() + dir.dy].getCellType() == Globals.HALLWAY || allTiles[currCell.getX() + dir.dx][currCell.getY() + dir.dy].getCellType() == Globals.ROOM))
+				{
+					clear = true;
+				}
+			}
+
+			if(!clear)
+			{
+				monsters.remove(currCell);
+				currCell.changeCellType(Globals.WALL);
+			}
+		}
+
+		for(int i = 0; i < treasures.size(); i++)
+		{
+			currCell = treasures.get(i);
+			clear = false;
+
+			for(Direction dir: allDir)
+			{
+				if(!outOfBounds(currCell.getX() + dir.dx, currCell.getY() + dir.dy) && (allTiles[currCell.getX() + dir.dx][currCell.getY() + dir.dy].getCellType() == Globals.HALLWAY || allTiles[currCell.getX() + dir.dx][currCell.getY() + dir.dy].getCellType() == Globals.ROOM))
+				{
+					clear = true;
+				}
+			}
+
+			if(!clear)
+			{
+				treasures.remove(currCell);
+				currCell.changeCellType(Globals.WALL);
+			}
+		}
+	}
 
 	// -- DRAWING
 
@@ -1090,8 +1164,8 @@ public class GridMap
 		    ig2.setColor(Color.BLACK);
 		    ig2.fillRect(0, 0, width, height);
 
-		    drawCells(ig2, width, height, gridWidth, gridHeight);
-		    //drawComplete(ig2, width, height, gridWidth, gridHeight);
+		    //drawCells(ig2, width, height, gridWidth, gridHeight);
+		    drawComplete(ig2, width, height, gridWidth, gridHeight);
 
 		    drawGrid(ig2, width / gridWidth, height / gridHeight);
 
@@ -1132,26 +1206,32 @@ public class GridMap
 					pencil.setColor(Color.BLACK);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
 				}
-				else if(allTiles[i][j].getCellType() == Globals.TEST_MUTATION)
-				{
-					pencil.setColor(new Color(255, 0, 0));
-					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
-				}
-				else if(allTiles[i][j].getCellType() == Globals.TEST_MUTATION_2)
-				{
-					pencil.setColor(new Color(0, 255, 0));
-					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));
-				}
-				else if(allTiles[i][j].getCellType() == Globals.HALLWAY)
-				{
-					pencil.setColor(Color.WHITE);
-					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));	
-				}
 				else if(allTiles[i][j].getCellType() == Globals.ROOM)
 				{
-					pencil.setColor(Color.WHITE);
+					pencil.setColor(Color.GRAY);
 					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));		
 				}
+				else if(allTiles[i][j].getCellType() == Globals.TRAP)
+				{
+					pencil.setColor(Color.YELLOW);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));		
+				}
+				else if(allTiles[i][j].getCellType() == Globals.TREASURE)
+				{
+					pencil.setColor(Color.MAGENTA);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));		
+				}
+				else if(allTiles[i][j].getCellType() == Globals.MONSTER)
+				{
+					pencil.setColor(Color.GREEN);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));		
+				}
+				else
+				{
+					pencil.setColor(Color.GRAY);
+					pencil.fillRect(i * (imgW / gridWidth), j * (imgH / gridHeight), (imgW / gridW), (imgH / gridH));		
+				}
+
 			}
 		}
 	}

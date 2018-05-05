@@ -190,13 +190,13 @@ public class GridMapCavern extends GridMap
 		for(int i = 0; i < numChildGenes; i++)
 		{
 			parentSelection = getRand().nextInt(2);
-			if(parentSelection == 0 && parentATreasures.size() > 0)
+			if(parentSelection == 0 && parentATraps.size() > 0)
 			{
-				parentTrap = parentATraps.remove(getRand().nextInt(parentATreasures.size()));
+				parentTrap = parentATraps.remove(getRand().nextInt(parentATraps.size()));
 			}
-			else if(parentSelection == 1 && parentBTreasures.size() > 0)
+			else if(parentSelection == 1 && parentBTraps.size() > 0)
 			{
-				parentTrap = parentBTraps.remove(getRand().nextInt(parentBTreasures.size()));
+				parentTrap = parentBTraps.remove(getRand().nextInt(parentBTraps.size()));
 			}
 			else
 			{
@@ -247,10 +247,10 @@ public class GridMapCavern extends GridMap
 					successfulMutation = false;
 					while(successfulMutation == false)
 					{
-						mutationSelection = getRand().nextInt(5);
+						mutationSelection = getRand().nextInt(4);
 
 						// Reroute around
-						if(mutationSelection == 0)
+						/*if(mutationSelection == 0)
 						{
 							int originX = hallCells.get(i).getX();
 							int originY = hallCells.get(i).getY();
@@ -306,9 +306,9 @@ public class GridMapCavern extends GridMap
 							}
 
 							successfulMutation = true;
-						}
+						}*/
 						// Add Neighbor
-						else if(mutationSelection == 1)
+						if(mutationSelection == 0)
 						{
 							
 							Direction randDir = Direction.randomDir();
@@ -325,27 +325,41 @@ public class GridMapCavern extends GridMap
 							successfulMutation = true;
 						}
 						// Delete
-						else if(mutationSelection == 2)
+						else if(mutationSelection == 1)
 						{
 							
 							Cell currCell = hallCells.get(i);
-							getCell(currCell.getX(), currCell.getY()).changeCellType(Globals.WALL);
+							int changeType = getRand().nextInt(8);
+							getCell(currCell.getX(), currCell.getY()).changeCellType(changeType);
 							getCell(currCell.getX(), currCell.getY()).setHallwayAssignment(-1);
 							hallCells.remove(currCell);
+
+							if(changeType == 5)
+							{
+								monsters.add(getCell(currCell.getX(), currCell.getY()));
+							}
+							else if(changeType == 6)
+							{
+								treasures.add(getCell(currCell.getX(), currCell.getY()));
+							}
+							else if(changeType == 7)
+							{
+								traps.add(getCell(currCell.getX(), currCell.getY()));
+							}
 
 							successfulMutation = true;
 
 						}
 						//Context aware
 						// Route To Room
-						else if(mutationSelection == 3)
+						else if(mutationSelection == 2)
 						{
 							
 							Cell origin = hallCells.get(i);
 
 							for(Direction dir: allDir)
 							{
-								if(!outOfBounds(origin.getX() + (dir.dx * 3), origin.getY() + (dir.dy * 3)) && getCell(origin.getX() + (dir.dx * 3), origin.getY() + (dir.dy * 3)).getCellType() == Globals.ROOM && getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).getCellType() == Globals.WALL )
+								if(!outOfBounds(origin.getX() + (dir.dx * 3), origin.getY() + (dir.dy * 3)) && getCell(origin.getX() + (dir.dx * 3), origin.getY() + (dir.dy * 3)).getCellType() == Globals.ROOM && (getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).getCellType() == Globals.WALL  || getCell(origin.getX() + dir.dx, origin.getY() + dir.dy).getCellType() == Globals.BLOCKED))
 								{
 									getCell(origin.getX() + (dir.dx * 2), origin.getY() + (dir.dy * 2)).changeCellType(Globals.HALLWAY);
 									getCell(origin.getX() + (dir.dx * 2), origin.getY() + (dir.dy * 2)).setHallwayAssignment(mutateHall.getNumber());
@@ -361,7 +375,7 @@ public class GridMapCavern extends GridMap
 
 						}
 						// Extension
-						else if(mutationSelection == 4)
+						else if(mutationSelection == 3)
 						{
 							if(mutateHall.size() < 10)
 							{
@@ -371,7 +385,7 @@ public class GridMapCavern extends GridMap
 
 								for(int j = 0; j < extensionLength; j++)
 								{
-									if(!outOfBounds(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)) && getCell(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)).getCellType() == Globals.WALL)
+									if(!outOfBounds(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)) && (getCell(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)).getCellType() == Globals.WALL || getCell(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)).getCellType() == Globals.BLOCKED))
 									{
 										getCell(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)).changeCellType(Globals.HALLWAY);
 										getCell(origin.getX() + (dir.dx * j), origin.getY() + (dir.dy * j)).setHallwayAssignment(mutateHall.getNumber());
@@ -412,8 +426,23 @@ public class GridMapCavern extends GridMap
 						{
 
 							Cell c = roomCells.get(i);
-							getCell(c.getX(), c.getY()).changeCellType(Globals.WALL);
+							int changeType = getRand().nextInt(8);
+							getCell(c.getX(), c.getY()).changeCellType(changeType);
 							getCell(c.getX(), c.getY()).setRoomAssignment(-1);
+							roomCells.remove(c);
+
+							if(changeType == 5)
+							{
+								monsters.add(getCell(c.getX(), c.getY()));
+							}
+							else if(changeType == 6)
+							{
+								treasures.add(getCell(c.getX(), c.getY()));
+							}
+							else if(changeType == 7)
+							{
+								traps.add(getCell(c.getX(), c.getY()));
+							}
 							successfulMutation = true;
 						
 						}
@@ -467,26 +496,27 @@ public class GridMapCavern extends GridMap
 		}	
 
 		// Monster mutation
-		for(Cell mutateMonster: monsters)
+		for(int j = 0; j < monsters.size(); j++)
 		{
 			if(getRand().nextDouble() < mutationRate)
 			{
+				Cell mutateMonster = monsters.get(j);
 				successfulMutation = false;
 				while(successfulMutation == false)
 				{
-					mutationSelection = getRand().nextInt(2);
+					mutationSelection = getRand().nextInt(3);
 
 					// Shift Position
 					if(mutationSelection == 0)
 					{
 						System.out.printf("Shift mutate \n");
-						int shiftBy = getRand().nextInt(3) + 1;
+						int shiftBy = getRand().nextInt(10) + 1;
 						Direction shiftIn = Direction.randomDir();
 
 						if(!outOfBounds(mutateMonster.getX() + (shiftIn.dx * shiftBy), mutateMonster.getY() + (shiftIn.dy * shiftBy)))
 						{
 							getCell(mutateMonster.getX(), mutateMonster.getY()).changeCellType(Globals.WALL);
-							monsters.remove(mutateMonster);
+							
 
 							getCell(mutateMonster.getX() + (shiftIn.dx * shiftBy), mutateMonster.getY() + (shiftIn.dy * shiftBy)).changeCellType(Globals.MONSTER);
 							monsters.add(getCell(mutateMonster.getX() + (shiftIn.dx * shiftBy), mutateMonster.getY() + (shiftIn.dy * shiftBy)));
@@ -532,17 +562,85 @@ public class GridMapCavern extends GridMap
 
 					
 					}
+					// Change
+					else if(mutationSelection == 2)
+					{
+						boolean hall = false;
+						boolean room = false;
+
+						for(Direction dir : allDir)
+						{
+							if(!outOfBounds(mutateMonster.getX() + dir.dx, mutateMonster.getY() + dir.dy))
+							{
+								if(getCell(mutateMonster.getX() + dir.dx, mutateMonster.getY() + dir.dy).getCellType() == Globals.HALLWAY)
+								{
+									hall = true;
+								}
+								else if(getCell(mutateMonster.getX() + dir.dx, mutateMonster.getY() + dir.dy).getCellType() == Globals.ROOM)
+								{
+									room = true;
+								}
+							}
+						}
+
+						monsters.remove(mutateMonster);
+
+						if(hall && !room)
+						{
+							getCell(mutateMonster.getX(), mutateMonster.getY()).changeCellType(Globals.HALLWAY);
+						}
+						else if(!hall && room)
+						{
+							getCell(mutateMonster.getX(), mutateMonster.getY()).changeCellType(Globals.ROOM);	
+						}
+						else if(hall && room)
+						{
+							int choice = getRand().nextInt(2);
+
+							if(choice == 0)
+							{
+								getCell(mutateMonster.getX(), mutateMonster.getY()).changeCellType(Globals.HALLWAY);
+							}
+							else
+							{
+								getCell(mutateMonster.getX(), mutateMonster.getY()).changeCellType(Globals.ROOM);
+							}
+						}
+						else
+						{
+							int changeType = getRand().nextInt(8);
+							getCell(mutateMonster.getX(), mutateMonster.getY()).changeCellType(changeType);
+
+							if(changeType == 5)
+							{
+								monsters.add(getCell(mutateMonster.getX(), mutateMonster.getY()));
+							}
+							else if(changeType == 6)
+							{
+								treasures.add(getCell(mutateMonster.getX(), mutateMonster.getY()));
+							}
+							else if(changeType == 7)
+							{
+								traps.add(getCell(mutateMonster.getX(), mutateMonster.getY()));
+							}
+
+						}
+						successfulMutation = true;
+					}
+
 
 				}
 			}
 		}
 
 		// Treasure Mutation
-		for(Cell mutateTreasure : treasures)
+		for(int j = 0; j < treasures.size(); j++)
 		{
 			if(getRand().nextDouble() < mutationRate)
 			{
+				Cell mutateTreasure = treasures.get(j);
 				successfulMutation = false;
+
 				while(!successfulMutation)
 				{
 					mutationSelection = getRand().nextInt(2);
@@ -551,16 +649,79 @@ public class GridMapCavern extends GridMap
 					if(mutationSelection == 0)
 					{
 						Direction dir = Direction.randomDir();
-						int shiftBy = getRand().nextInt(3) + 1;
+						int shiftBy = getRand().nextInt(10) + 1;
 
 						if(!outOfBounds(mutateTreasure.getX() + (dir.dx * shiftBy),mutateTreasure.getY() + (dir.dy * shiftBy)))
 						{
 							getCell(mutateTreasure.getX(), mutateTreasure.getY()).changeCellType(Globals.WALL);
-							treasures.remove(mutateTreasure);
 
 							getCell(mutateTreasure.getX() + (dir.dx * shiftBy),mutateTreasure.getY() + (dir.dy * shiftBy)).changeCellType(Globals.TREASURE);
 							treasures.add(getCell(mutateTreasure.getX() + (dir.dx * shiftBy),mutateTreasure.getY() + (dir.dy * shiftBy)));
 						}
+						successfulMutation = true;
+					}
+						// Change
+					else if(mutationSelection == 1)
+					{
+						boolean hall = false;
+						boolean room = false;
+
+						for(Direction dir : allDir)
+						{
+							if(!outOfBounds(mutateTreasure.getX() + dir.dx, mutateTreasure.getY() + dir.dy))
+							{
+								if(getCell(mutateTreasure.getX() + dir.dx, mutateTreasure.getY() + dir.dy).getCellType() == Globals.HALLWAY)
+								{
+									hall = true;
+								}
+								else if(getCell(mutateTreasure.getX() + dir.dx, mutateTreasure.getY() + dir.dy).getCellType() == Globals.ROOM)
+								{
+									room = true;
+								}
+							}
+						}
+
+						treasures.remove(mutateTreasure);
+
+						if(hall && !room)
+						{
+							getCell(mutateTreasure.getX(), mutateTreasure.getY()).changeCellType(Globals.HALLWAY);
+						}
+						else if(!hall && room)
+						{
+							getCell(mutateTreasure.getX(), mutateTreasure.getY()).changeCellType(Globals.ROOM);	
+						}
+						else if(hall && room)
+						{
+							int choice = getRand().nextInt(2);
+
+							if(choice == 0)
+							{
+								getCell(mutateTreasure.getX(), mutateTreasure.getY()).changeCellType(Globals.HALLWAY);
+							}
+							else
+							{
+								getCell(mutateTreasure.getX(), mutateTreasure.getY()).changeCellType(Globals.ROOM);
+							}
+						}
+						else
+						{
+							int changeType = getRand().nextInt(8);
+							getCell(mutateTreasure.getX(), mutateTreasure.getY()).changeCellType(changeType);
+							if(changeType == 5)
+							{
+								monsters.add(getCell(mutateTreasure.getX(), mutateTreasure.getY()));
+							}
+							else if(changeType == 6)
+							{
+								treasures.add(getCell(mutateTreasure.getX(), mutateTreasure.getY()));
+							}
+							else if(changeType == 7)
+							{
+								traps.add(getCell(mutateTreasure.getX(), mutateTreasure.getY()));
+							}
+						}
+
 						successfulMutation = true;
 					}
 
@@ -568,25 +729,27 @@ public class GridMapCavern extends GridMap
 			}
 		}
 		// Trap Mutation
-		for(Cell mutateTrap : traps)
+		for(int j = 0; j < traps.size(); j++)
 		{
 			if(getRand().nextDouble() < mutationRate)
 			{
+				Cell mutateTrap = traps.get(j);
 				successfulMutation = false;
+
 				while(!successfulMutation)
 				{
-					mutationSelection = getRand().nextInt(2);
+					mutationSelection = getRand().nextInt(3);
 
 					// Shift Mutation
 					if(mutationSelection == 0)
 					{
 						Direction dir = Direction.randomDir();
-						int shiftBy = getRand().nextInt(3) + 1;
+						int shiftBy = getRand().nextInt(10) + 1;
 
 						if(!outOfBounds(mutateTrap.getX() + (dir.dx * shiftBy),mutateTrap.getY() + (dir.dy * shiftBy)))
 						{
 							getCell(mutateTrap.getX(), mutateTrap.getY()).changeCellType(Globals.WALL);
-							traps.remove(mutateTrap);
+							
 
 							getCell(mutateTrap.getX() + (dir.dx * shiftBy),mutateTrap.getY() + (dir.dy * shiftBy)).changeCellType(Globals.TRAP);
 							traps.add(getCell(mutateTrap.getX() + (dir.dx * shiftBy),mutateTrap.getY() + (dir.dy * shiftBy)));
@@ -597,8 +760,6 @@ public class GridMapCavern extends GridMap
 					// Move to Room Entrance
 					else if(mutationSelection == 1)
 					{
-						
-						// If monster has 2 neighbor hallways and is within reasonable range of a room
 						int neighborHalls = 0;
 						Direction nearbyRoomDir = null;
 						int nearbyRoomDistance = 0;
@@ -632,6 +793,70 @@ public class GridMapCavern extends GridMap
 
 					
 					}
+					// Change
+					else if(mutationSelection == 2)
+					{
+						boolean hall = false;
+						boolean room = false;
+
+						for(Direction dir : allDir)
+						{
+							if(!outOfBounds(mutateTrap.getX() + dir.dx, mutateTrap.getY() + dir.dy))
+							{
+								if(getCell(mutateTrap.getX() + dir.dx, mutateTrap.getY() + dir.dy).getCellType() == Globals.HALLWAY)
+								{
+									hall = true;
+								}
+								else if(getCell(mutateTrap.getX() + dir.dx, mutateTrap.getY() + dir.dy).getCellType() == Globals.ROOM)
+								{
+									room = true;
+								}
+							}
+						}
+
+						traps.remove(mutateTrap);
+
+						if(hall && !room)
+						{
+							getCell(mutateTrap.getX(), mutateTrap.getY()).changeCellType(Globals.HALLWAY);
+						}
+						else if(!hall && room)
+						{
+							getCell(mutateTrap.getX(), mutateTrap.getY()).changeCellType(Globals.ROOM);	
+						}
+						else if(hall && room)
+						{
+							int choice = getRand().nextInt(2);
+
+							if(choice == 0)
+							{
+								getCell(mutateTrap.getX(), mutateTrap.getY()).changeCellType(Globals.HALLWAY);
+							}
+							else
+							{
+								getCell(mutateTrap.getX(), mutateTrap.getY()).changeCellType(Globals.ROOM);
+							}
+						}
+						else
+						{
+							int changeType = getRand().nextInt(8);
+							getCell(mutateTrap.getX(), mutateTrap.getY()).changeCellType(changeType);
+							if(changeType == 5)
+							{
+								monsters.add(getCell(mutateTrap.getX(), mutateTrap.getY()));
+							}
+							else if(changeType == 6)
+							{
+								treasures.add(getCell(mutateTrap.getX(), mutateTrap.getY()));
+							}
+							else if(changeType == 7)
+							{
+								traps.add(getCell(mutateTrap.getX(), mutateTrap.getY()));
+							}
+
+						}
+						successfulMutation = true;
+					}
 
 				}
 			}
@@ -654,10 +879,37 @@ public class GridMapCavern extends GridMap
 			// purge removes any cells that no longer belong in the room
 			rooms.get(i).purge();
 
-			if(rooms.get(i).size() < 3)
+			if(rooms.get(i).size() < 10)
 			{
 				rooms.get(i).erase();
 				rooms.remove(rooms.get(i));
+				i--;
+			}
+		}
+
+		for(int i = 0; i < traps.size(); i++)
+		{
+			if(traps.get(i).getCellType() != Globals.TRAP)
+			{
+				traps.remove(i);
+				i--;
+			}
+		}
+
+		for(int i = 0; i < monsters.size(); i++)
+		{
+			if(monsters.get(i).getCellType() != Globals.MONSTER)
+			{
+				monsters.remove(i);
+				i--;
+			}
+		}
+
+		for(int i = 0; i < treasures.size(); i++)
+		{
+			if(treasures.get(i).getCellType() != Globals.TREASURE)
+			{
+				treasures.remove(i);
 				i--;
 			}
 		}
@@ -678,21 +930,52 @@ public class GridMapCavern extends GridMap
 		// Rooms should be large and non-uniform
 		if(getRoomsVector().size() > 5 && getRoomsVector().size() < 10)
 		{
-			myFit += 500;
+			myFit += 2500;
 		}
 		
 
 		if(getHallwaysVector().size() == getRoomsVector().size())
 		{
-			myFit += 200;
+			myFit += 1000;
 		}
 		else if(getHallwaysVector().size() > getRoomsVector().size() && getHallwaysVector().size() < getRoomsVector().size() * 3)// && getHallwaysVector().size() < getRoomsVector().size() + 10)
 		{
-			myFit += 500;
+			myFit += 2000;
+		}
+		else if(getHallwaysVector().size() < getRoomsVector().size())
+		{
+			myFit -= 1000;
+		}
+
+		if(getTrapsVector().size() > 3 && getMonstersVector().size() > 5 && getTreasuresVector().size() > 7)
+		{
+			myFit += 2000;
+		}
+
+		if(getTrapsVector().size() > 0 && getTrapsVector().size() < getRoomsVector().size() + getHallwaysVector().size())
+		{
+			myFit += 2000;
+		}
+
+		if(getMonstersVector().size() > getRoomsVector().size())
+		{
+			myFit += 1000;
+		}
+
+		if(getTreasuresVector().size() > getMonstersVector().size())
+		{
+			myFit += 1000;
+		}
+
+		if(getTreasuresVector().size() > 0 && getTreasuresVector().size() < getRoomsVector().size() + 4)
+		{
+			myFit += 1000;
 		}
 
 		myFit += evaluateHallways();
 		myFit += evaluateRooms();
+		myFit += evaluateTraps();
+		myFit += evaluateTreasures();
 
 		int numDisconnects = solveMaze();
 
@@ -703,7 +986,7 @@ public class GridMapCavern extends GridMap
 		}
 		else
 		{
-			myFit -= numDisconnects * - 200;
+			myFit -= numDisconnects * -200;
 		}
 
 		if(myFit <= 0)
@@ -846,33 +1129,35 @@ public class GridMapCavern extends GridMap
 			// Fitness changes
 			if(hall.size() > 15)
 			{
-				fitness += 200;
+				fitness += 500;
 			}
 			else if(hall.size() > 10)
 			{
-				fitness += 100;
-			}
-			else
-			{
-				fitness -= 100;
+				fitness += 200;
 			}
 
 
 			// Add to fitness based on how many rooms and hallway this hallway connects
 			if(connectingRooms.size() == 2)
 			{
-				fitness += 300;
+				fitness += 500;
 			}
 			else if(connectingRooms.size() == 3)
 			{
-				fitness += 400;
-			}
-			else if(connectingRooms.size() == 0)
-			{
-				fitness -= 500;
+				fitness += 1000;
 			}
 			
 
+			
+			if(connectingHalls.size() > 1 && connectingHalls.size() < 4)
+			{
+				fitness += 500;
+			}
+			else if(connectingHalls.size() > 4)
+			{
+				fitness -= 1000;
+			}
+			
 			// Evaluate how narrow the hallway is
 			if((highestX - lowestX > 12 && highestY - lowestY < 5) || highestY - lowestY > 12 && highestX - lowestX < 5)
 			{
@@ -1000,10 +1285,10 @@ public class GridMapCavern extends GridMap
 					currRoomCenterX = currRoomHighX - ((currRoomHighX - currRoomLowX) / 2);
 					currRoomCenterY = currRoomHighY - ((currRoomHighY - currRoomLowY) / 2);
 
-					if(Math.abs(centerX - currRoomCenterX) > 12 || Math.abs(centerY - currRoomCenterY) > 12)
+					if(Math.abs(centerX - currRoomCenterX) > 7 || Math.abs(centerY - currRoomCenterY) > 7)
 					{
 						// Rooms are probably pretty far apart
-						fitness += 250;
+						fitness += 500;
 					}
 				}
 			}
@@ -1016,30 +1301,30 @@ public class GridMapCavern extends GridMap
 		// Evaluate connections
 		if(connectingRooms.size() == 0)
 		{
-			fitness += 150;
+			fitness += 2000;
 		}
 
 
 		if(connectingHalls.size() > 0 && connectingHalls.size() < 4)
 		{
-			fitness += connectingHalls.size() * 150;
+			fitness += 2000;
 		}
 		else if(connectingHalls.size() > 4 )
 		{
-			fitness += connectingHalls.size() * 50;
+			fitness += 500;
 		}
 
 		// Evaluate room size
 		if(highestX - lowestX > 5 && highestY - lowestY > 5 && highestX - lowestX < 12 && highestY - lowestY < 12)
 		{
-			fitness += 150;
+			fitness += 500;
 		}
 
 		// Evaluate uniformity
 		if((highestX - lowestX) != (highestY - lowestY))
 		{
 			// Perfect Square
-			fitness += 150;
+			fitness += 100;
 		}
 		
 		
@@ -1048,6 +1333,219 @@ public class GridMapCavern extends GridMap
 		return fitness;
 	}
 
+	// Evaluate cavern's traps
+	// Located around treasure or at the enterance to rooms
+	private double evaluateTraps()
+	{
+		double fitness = 0;
+		Vector<Cell> trapVec = getTrapsVector();
+		int searchXRadius = -2;
+		int searchYRadius = -2;
+		Cell checkCell = null;
+		int halls = 0;
+		int rooms = 0;
+		int traps = 0;
+		int monsters = 0;
+		int treasures = 0;
+		int walls = 0;
+
+		for(Cell trap: trapVec)
+		{
+			halls = 0;
+			rooms = 0;
+			traps = 0;
+			monsters = 0;
+			treasures = 0;
+			walls = 0;
+
+			for(int i = searchXRadius; i < Math.abs(searchXRadius); i++)
+			{
+				for(int j = searchYRadius; j < Math.abs(searchYRadius); j++)
+				{
+					if(!outOfBounds(trap.getX() + i, trap.getY() + j) && getCell(trap.getX() + i, trap.getY() + j) != trap)
+					{
+						checkCell = getCell(trap.getX() + i, trap.getY() + j);
+						if(checkCell.getCellType() == Globals.HALLWAY)
+						{
+							halls++;
+						}
+						else if(checkCell.getCellType() == Globals.ROOM)
+						{
+							rooms++;
+						}
+						else if(checkCell.getCellType() == Globals.TRAP)
+						{
+							traps++;
+						}
+						else if(checkCell.getCellType() == Globals.TREASURE)
+						{
+							treasures++;
+						}
+						else if(checkCell.getCellType() == Globals.MONSTER)
+						{
+							monsters++;
+						}
+						else if(checkCell.getCellType() == Globals.WALL)
+						{
+							walls++;
+						}
+					}
+					
+
+					
+				}
+			}
+
+			
+			// search zome is 4x4
+			if(rooms > 12)
+			{
+				// Trap is mostly surrounded by rooms - not bad
+				fitness += 100;
+			}
+
+			if(treasures > 0 && treasures < 3)
+			{
+				fitness += 100;
+			}
+
+			if(traps > 0)
+			{
+				fitness -= 100;
+			}
+
+			if(halls > 0 && halls < 5 && rooms > 0)
+			{
+				// Trap is located near enterance to room most likely
+				fitness += 100;
+			}
+
+			if(halls > 0 && halls < 5 && rooms > 0 && monsters > 0)
+			{
+				fitness += 150;
+			}
+
+			if(walls > 12)
+			{
+				fitness -= 200;
+			}
+
+			if(monsters > 0)
+			{
+				fitness += 50;
+			}
+
+			if(halls < 3 && rooms < 3 && walls > 7)
+			{
+				fitness -= 100;
+			}
+
+
+
+
+		}
+
+		return fitness;
+	}
+
+	private double evaluateTreasures()
+	{
+		double fitness = 0;
+		Vector<Cell> treasureVec = getTreasuresVector();
+		int searchXRadius = -2;
+		int searchYRadius = -2;
+		Cell checkCell = null;
+		int halls = 0;
+		int rooms = 0;
+		int traps = 0;
+		int monsters = 0;
+		int treasures = 0;
+		int walls = 0;
+
+		for(Cell treasure: treasureVec)
+		{
+			halls = 0;
+			rooms = 0;
+			traps = 0;
+			monsters = 0;
+			treasures = 0;
+			walls = 0;
+
+			for(int i = searchXRadius; i < Math.abs(searchXRadius); i++)
+			{
+				for(int j = searchYRadius; j < Math.abs(searchYRadius); j++)
+				{
+					if(!outOfBounds(treasure.getX() + i, treasure.getY() + j) && getCell(treasure.getX() + i, treasure.getY() + j) != treasure)
+					{
+						checkCell = getCell(treasure.getX() + i, treasure.getY() + j);
+						if(checkCell.getCellType() == Globals.HALLWAY)
+						{
+							halls++;
+						}
+						else if(checkCell.getCellType() == Globals.ROOM)
+						{
+							rooms++;
+						}
+						else if(checkCell.getCellType() == Globals.TRAP)
+						{
+							traps++;
+						}
+						else if(checkCell.getCellType() == Globals.TREASURE)
+						{
+							treasures++;
+						}
+						else if(checkCell.getCellType() == Globals.MONSTER)
+						{
+							monsters++;
+						}
+						else if(checkCell.getCellType() == Globals.WALL)
+						{
+							walls++;
+						}
+					}
+					
+
+					
+				}
+			}
+
+		}
+
+		// search radius is 4x4
+		if(rooms > 12)
+		{
+			// Treasure in the middle of room - ok
+			fitness += 100;
+		}
+
+		if(traps > 0 && monsters > 0)
+		{
+			fitness += 200;
+		}
+
+		if(walls > 17)
+		{
+			fitness -= 200;
+		}
+
+		if(treasures > 0 && treasures < 5)
+		{
+			fitness += 100;
+		}
+
+		if(rooms > 7 && walls > 7)
+		{
+			// against a wall
+			fitness += 100;
+		}
+
+		if(halls > 0 && halls < 5)
+		{
+			fitness += 100;
+		}
+
+		return fitness;
+	}
 	// Evaluate cavern's doors
 	// The only time doors should exist in a cave is if intelligent monsters live in the cave; even then it should be fairly rare
 
@@ -1127,4 +1625,6 @@ public class GridMapCavern extends GridMap
 		}
 		
 	}
+	
+
 }

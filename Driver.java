@@ -12,7 +12,7 @@ public class Driver
 		int mapType = 1; // 1 = cavern
 		int numGens = 500;
 		
-		Population pop = new Population(10, x, y, 0.01);
+		Population pop = new Population(10, x, y, 0.03);
 		pop.initialize();
 
 		GridMap highestFit = pop.getGridMap(0);
@@ -27,16 +27,16 @@ public class Driver
 		
 			
 
-		for(int i = 0; i < pop.getPopSize(); i++)
+		/*for(int i = 0; i < pop.getPopSize(); i++)
 		{
 			pop.getGridMap(i).Draw(Integer.toString(i + 1));
-		}
+		}*/
 		//AQ.finish();
 	
 
 		// Test hallways
 		int j =0;
-		while(highestFit.getFitness() < 100000.00)
+		while(j <= 1000)
 		{
 			System.out.printf("Starting generation %d\n", j);
 			
@@ -56,15 +56,22 @@ public class Driver
 
 					highestFit = map;
 				}
+
+				if(j == 1000)
+				{
+					// Final Map - Forced cleanup
+					highestFit.cleanUp();
+					System.out.printf("Room Num: %d", highestFit.getRoomsVector().size());
+				}
 			}
 			
-			for(int i = 0; i < pop.getPopSize(); i++)
+			/*for(int i = 0; i < pop.getPopSize(); i++)
 			{
 				pop.getGridMap(i).Draw(Integer.toString(j + 1) + Integer.toString(i) + " - " + pop.getGridMap(i).getFitness() + " - " + pop.getGridMap(i).getHallwaysVector().size());
-			}
+			}*/
 			
 			//pop.drawHighestFit(j);
-			//highestFit.Draw(Integer.toString(j) + " - " + highestFit.getFitness() + " - " + highestFit.getHallwaysVector().size() + " - " + highestFit.getRoomsVector().size());
+			highestFit.Draw(Integer.toString(j) + " - " + highestFit.getFitness() + " - " + highestFit.getHallwaysVector().size() + " - " + highestFit.getRoomsVector().size());
 			//highestFit = 0;
 			//AQ.finish();
 
